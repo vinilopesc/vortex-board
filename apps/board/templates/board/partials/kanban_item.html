@@ -1,0 +1,153 @@
+<!-- apps/board/templates/board/partials/kanban_item.html -->
+<div class="kanban-item bg-white rounded-lg shadow-sm border hover:shadow-md cursor-pointer p-4
+            {% if item_type == 'bug' %}
+                severidade-{{ item.severidade }}
+            {% endif %}"
+     data-item-id="{{ item.id }}"
+     data-item-type="{{ item_type }}"
+     draggable="true"
+     ondragstart="drag(event)"
+     onclick="abrirDetalhesItem('{{ item_type }}', {{ item.id }})">
+
+    <!-- Header do item -->
+    <div class="flex items-start justify-between mb-2">
+        <div class="flex items-center space-x-2">
+            <!-- Ícone do tipo -->
+            <span class="text-lg">
+                {% if item_type == 'bug' %}🐛{% else %}✨{% endif %}
+            </span>
+
+            <!-- ID do item -->
+            <span class="text-xs text-gray-500 font-mono">
+                #{{ item.id }}
+            </span>
+        </div>
+
+        <!-- Prioridade badge -->
+        <span class="px-2 py-1 rounded-full text-xs font-medium
+                     prioridade-{{ item.prioridade }}">
+            {% if item.prioridade == 'critica' %}🔴{% elif item.prioridade == 'alta' %}🟠{% elif item.prioridade == 'media' %}🟡{% else %}🟢{% endif %}
+        </span>
+    </div>
+
+    <!-- Título -->
+    <h4 class="font-medium text-gray-900 mb-2 line-clamp-2">
+        {{ item.titulo }}
+    </h4>
+
+    <!-- Descrição (truncada) -->
+    {% if item.descricao %}
+    <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+        {{ item.descricao|truncatewords:20 }}
+    </p>
+    {% endif %}
+
+    <!-- Metadados específicos -->
+    <div class="space-y-1 mb-3">
+        {% if item_type == 'bug' %}
+            <!-- Severidade e ambiente -->
+            <div class="flex items-center space-x-3 text-xs text-gray-600">
+                <span class="flex items-center">
+                    ⚠️ {{ item.get_severidade_display }}
+                </span>
+                <span class="flex items-center">
+                    🏗️ {{ item.ambiente }}
+                </span>
+            </div>
+        {% else %}
+            <!-- Categoria e horas estimadas -->
+            <div class="flex items-center space-x-3 text-xs text-gray-600">
+                <span class="flex items-center">
+                    {{ item.get_icon_categoria }} {{ item.get_categoria_display }}
+                </span>
+                {% if item.estimativa_horas %}
+                <span class="flex items-center">
+                    ⏱️ {{ item.estimativa_horas }}h
+                </span>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Footer com responsável e prazo -->
+    <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+        <!-- Responsável -->
+        <div class="flex items-center space-x-2">
+            {% if item.responsavel %}
+                <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                    {% if item.responsavel.foto %}
+                        <img src="{{ item.responsavel.foto.url }}" class="w-6 h-6 rounded-full">
+                    {% else %}
+                        {{ item.responsavel.first_name|first|default:item.responsavel.username|first }}
+                    {% endif %}
+                </div>
+                <span class="text-xs text-gray-600">
+                    {{ item.responsavel.first_name|default:item.responsavel.username }}
+                </span>
+            {% else %}
+                <span class="text-xs text-gray-400">Sem responsável</span>
+            {% endif %}
+        </div>
+
+        <!-- Prazo -->
+        <div class="text-xs">
+            {% if item.prazo %}
+                {% if item.esta_atrasado %}
+                    <span class="text-red-600 font-medium">
+                        ⏰ Atrasado
+                    </span>
+                {% else %}
+                    <span class="text-gray-500">
+                        📅 {{ item.prazo|date:"d/m" }}
+                    </span>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Indicadores adicionais -->
+    <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
+        <!-- Comentários -->
+        <div class="flex items-center space-x-3 text-xs text-gray-500">
+            {% if item_type == 'bug' %}
+                {% if item.comentarios.count %}
+                <span class="flex items-center">
+                    💬 {{ item.comentarios.count }}
+                </span>
+                {% endif %}
+
+                {% if item.registros_hora.count %}
+                <span class="flex items-center">
+                    ⏱️ {{ item.registros_hora.count }}
+                </span>
+                {% endif %}
+            {% else %}
+                {% if item.comentarios.count %}
+                <span class="flex items-center">
+                    💬 {{ item.comentarios.count }}
+                </span>
+                {% endif %}
+
+                {% if item.registros_hora.count %}
+                <span class="flex items-center">
+                    ⏱️ {{ item.registros_hora.count }}
+                </span>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <!-- Pontos calculados -->
+        <div class="text-xs text-gray-500">
+            {{ item.calcular_pontos }} pts
+        </div>
+    </div>
+
+    <!-- Progress bar para items em progresso -->
+    {% if item.coluna.titulo == 'Em Progresso' and item.registros_hora.count %}
+    <div class="mt-2">
+        <div class="w-full bg-gray-200 rounded-full h-1">
+            <div class="bg-blue-600 h-1 rounded-full" style="width: 60%"></div>
+        </div>
+    </div>
+    {% endif %}
+</div>
