@@ -1,5 +1,4 @@
-# requirements.txt - Vortex Board
-# Versões fixadas para ambiente de produção
+# requirements.txt - Vortex Board (Produção)
 
 # === DJANGO CORE ===
 Django==4.2.8
@@ -27,12 +26,20 @@ xlsxwriter==3.1.9
 openpyxl==3.1.2
 Pillow==10.1.0
 
-# === DEVELOPMENT TOOLS ===
+# === DEVELOPMENT TOOLS (django-extensions é usado em prod pelos templatetags) ===
 django-extensions==3.2.3
 
 # === PRODUCTION SERVER ===
 gunicorn==21.2.0
 whitenoise==6.6.0
+
+# === UTILS ===
+python-dateutil==2.8.2
+pytz==2023.3 # Embora o Django 4.2+ com Python 3.9+ use zoneinfo, manter pytz é seguro por compatibilidade ou dependências transitórias.
+
+# === SECURITY ===
+django-csp==3.7
+django-ratelimit==4.1.0
 
 # === TESTING ===
 pytest==7.4.3
@@ -46,14 +53,6 @@ black==23.11.0
 flake8==6.1.0
 isort==5.12.0
 
-# === UTILS ===
-python-dateutil==2.8.2
-pytz==2023.3
-
-# === SECURITY ===
-django-csp==3.7
-django-ratelimit==4.1.0
-
-# === DEVELOPMENT ONLY (comentar em produção) ===
+# === DEVELOPMENT ONLY ===
 django-debug-toolbar==4.2.0
 ipython==8.17.2

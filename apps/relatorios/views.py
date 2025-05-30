@@ -2,6 +2,7 @@
 
 import csv
 import json
+from django.db.models import Sum, F, ExpressionWrapper, fields
 from datetime import datetime, timedelta
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -72,12 +73,27 @@ def dashboard_relatorios(request):
 
     # Horas trabalhadas no último mês
     ultimo_mes = timezone.now() - timedelta(days=30)
-    stats['horas_ultimo_mes'] = RegistroHora.objects.filter(
+
+    # Query base para registros de hora
+    registros_horas_qs = RegistroHora.objects.filter(
         Q(bug__coluna__board__projeto__in=projetos) |
         Q(feature__coluna__board__projeto__in=projetos),
         inicio__gte=ultimo_mes,
-        fim__isnull=False
-    ).aggregate(total=Sum('duracao'))['total'] or 0
+        fim__isnull=False  # Garante que 'fim' não seja nulo para o cálculo
+    )
+
+    # Calcular a soma das durações no banco de dados
+    aggregated_data = registros_horas_qs.aggregate(
+        total_duration=Sum(ExpressionWrapper(F('fim') - F('inicio'), output_field=fields.DurationField()))
+    )
+
+    total_duration_timedelta = aggregated_data['total_duration']
+
+    if total_duration_timedelta:
+        # Converter o timedelta total para horas
+        stats['horas_ultimo_mes'] = round(total_duration_timedelta.total_seconds() / 3600, 2)
+    else:
+        stats['horas_ultimo_mes'] = 0
 
     context = {
         'title': 'Relatórios - Dashboard',
