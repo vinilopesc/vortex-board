@@ -3,3 +3,4 @@ venv
 env_prod.txt
 .github
 .idea
+.logs
