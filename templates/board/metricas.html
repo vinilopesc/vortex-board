@@ -1,0 +1,276 @@
+<!-- templates/board/metricas.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">📊 Métricas do Board</h1>
+                <nav class="text-sm text-gray-600">
+                    <a href="{% url 'core:painel' %}" class="hover:text-gray-900">Painel</a>
+                    <span class="mx-2">›</span>
+                    <a href="{% url 'board:kanban' board.id %}" class="hover:text-gray-900">{{ board.titulo }}</a>
+                    <span class="mx-2">›</span>
+                    <span>Métricas</span>
+                </nav>
+            </div>
+            <a href="{% url 'board:kanban' board.id %}" 
+               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                ← Voltar ao Board
+            </a>
+        </div>
+    </div>
+
+    <!-- Cards de métricas -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+            <div class="flex items-center">
+                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-blue-600">⚡</span>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Velocidade (30d)</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ velocidade.velocidade_diaria|floatformat:1 }}</p>
+                    <p class="text-xs text-gray-500">pontos/dia</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+            <div class="flex items-center">
+                <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-green-600">✅</span>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Concluídos (30d)</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ velocidade.total_items }}</p>
+                    <p class="text-xs text-gray-500">{{ velocidade.pontos_totais }} pontos</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+            <div class="flex items-center">
+                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-purple-600">👥</span>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Membros Ativos</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ distribuicao.estatisticas.total_membros }}</p>
+                    <p class="text-xs text-gray-500">equipe</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+            <div class="flex items-center">
+                <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-yellow-600">📈</span>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Pontos Restantes</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ burndown.pontos_restantes }}</p>
+                    <p class="text-xs text-gray-500">de {{ burndown.pontos_totais }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Burndown Chart -->
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🔥 Burndown Chart</h3>
+            <div class="h-64">
+                <canvas id="burndownChart"></canvas>
+            </div>
+            <div class="mt-4 text-sm text-gray-600">
+                <p><strong>Status:</strong> 
+                    {% if burndown.pontos_restantes == 0 %}
+                        <span class="text-green-600">✅ Sprint Concluído</span>
+                    {% elif burndown.pontos_restantes > burndown.pontos_totais|mul:0.5 %}
+                        <span class="text-yellow-600">⚠️ Atenção ao Ritmo</span>
+                    {% else %}
+                        <span class="text-blue-600">📈 No Cronograma</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Distribuição da Equipe -->
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">👥 Carga de Trabalho</h3>
+            
+            {% if distribuicao.membros %}
+            <div class="space-y-4">
+                {% for membro in distribuicao.membros|slice:":5" %}
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-sm font-medium">
+                                {{ membro.nome|first|upper }}
+                            </span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">{{ membro.nome }}</p>
+                            <p class="text-xs text-gray-500">
+                                {{ membro.tarefas_ativas.total }} ativa{{ membro.tarefas_ativas.total|pluralize }} • 
+                                {{ membro.horas_trabalhadas_mes|floatformat:1 }}h este mês
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-semibold text-gray-900">{{ membro.pontos.ativos }} pts</p>
+                        <div class="w-20 bg-gray-200 rounded-full h-2 mt-1">
+                            {% widthratio membro.pontos.ativos distribuicao.estatisticas.total_pontos_ativos 100 as percentage %}
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: {{ percentage|default:0 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Estatísticas da equipe -->
+            <div class="mt-6 pt-4 border-t border-gray-200">
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <p class="text-gray-500">Média por membro</p>
+                        <p class="font-semibold">{{ distribuicao.estatisticas.pontos_por_membro|floatformat:1 }} pts</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500">Horas trabalhadas</p>
+                        <p class="font-semibold">{{ distribuicao.estatisticas.total_horas_mes|floatformat:1 }}h</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if distribuicao.desequilibrios %}
+            <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p class="text-sm text-yellow-800">
+                    <strong>⚠️ Sobrecarga detectada:</strong> 
+                    {{ distribuicao.desequilibrios|length }} membro{{ distribuicao.desequilibrios|length|pluralize }} com carga acima da média
+                </p>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-8 text-gray-500">
+                <p>Nenhum membro com tarefas ativas</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Velocidade por Sprint -->
+    <div class="mt-8 bg-white rounded-lg shadow-sm border p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Velocity Tracking</h3>
+        
+        <!-- Placeholder para desenvolvimento futuro -->
+        <div class="text-center py-8 text-gray-500">
+            <div class="text-4xl mb-4">🚧</div>
+            <p>Gráfico de velocidade em desenvolvimento</p>
+            <p class="text-sm">Será implementado com histórico de sprints</p>
+        </div>
+    </div>
+
+    <!-- Insights e Recomendações -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Insights -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h4 class="font-semibold text-blue-900 mb-3">💡 Insights</h4>
+            <ul class="space-y-2 text-sm text-blue-800">
+                {% if velocidade.velocidade_diaria > 0 %}
+                <li>• Velocidade atual: {{ velocidade.velocidade_diaria|floatformat:1 }} pontos/dia</li>
+                {% endif %}
+                
+                {% if burndown.pontos_restantes > 0 %}
+                <li>• Restam {{ burndown.pontos_restantes }} pontos para conclusão</li>
+                {% endif %}
+                
+                {% if distribuicao.estatisticas.total_membros > 0 %}
+                <li>• Distribuição média: {{ distribuicao.estatisticas.pontos_por_membro|floatformat:1 }} pts/membro</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <!-- Recomendações -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+            <h4 class="font-semibold text-green-900 mb-3">🎯 Recomendações</h4>
+            <ul class="space-y-2 text-sm text-green-800">
+                {% if distribuicao.desequilibrios %}
+                <li>• Redistribuir tarefas dos membros sobrecarregados</li>
+                {% endif %}
+                
+                {% if velocidade.velocidade_diaria < 1 %}
+                <li>• Revisar impedimentos que afetam a velocidade</li>
+                {% else %}
+                <li>• Manter o ritmo atual de entrega</li>
+                {% endif %}
+                
+                <li>• Documentar retrospectiva do sprint</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Burndown Chart
+const ctx = document.getElementById('burndownChart').getContext('2d');
+const burndownChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: {{ burndown.labels|safe }},
+        datasets: [{
+            label: 'Pontos Restantes',
+            data: {{ burndown.real|safe }},
+            borderColor: '#EF4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            tension: 0.1
+        }, {
+            label: 'Linha Ideal',
+            data: {{ burndown.ideal|safe }},
+            borderColor: '#6B7280',
+            borderDash: [5, 5],
+            fill: false
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Pontos'
+                }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Dias'
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: false
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

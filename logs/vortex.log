@@ -108,3 +108,46 @@ INFO 2025-05-30 14:00:28,603 basehttp 11228 8480 "GET /static/debug_toolbar/js/t
 INFO 2025-05-30 14:00:28,668 basehttp 11228 8480 "GET /static/debug_toolbar/js/utils.js HTTP/1.1" 200 4527
 WARNING 2025-05-30 14:00:28,721 log 11228 8480 Not Found: /favicon.ico
 WARNING 2025-05-30 14:00:28,721 basehttp 11228 8480 "GET /favicon.ico HTTP/1.1" 404 12641
+INFO 2025-05-30 14:17:46,111 apps 9296 6436 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 14:17:46,111 apps 9296 6436 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 14:17:48,643 apps 1860 12164 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 14:17:48,643 apps 1860 12164 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 14:17:48,666 autoreload 1860 12164 Watching for file changes with StatReloader
+INFO 2025-05-30 14:17:51,287 basehttp 1860 9252 "GET / HTTP/1.1" 302 0
+INFO 2025-05-30 14:17:51,303 basehttp 1860 9252 "GET /painel/ HTTP/1.1" 302 0
+ERROR 2025-05-30 14:17:51,342 log 1860 9252 Internal Server Error: /login/
+Traceback (most recent call last):
+  File "C:\Users\vinic\Desktop\git\vortex-board\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\vinic\Desktop\git\vortex-board\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\vinic\Desktop\git\vortex-board\venv\Lib\site-packages\django\utils\decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\vinic\Desktop\git\vortex-board\venv\Lib\site-packages\django\views\decorators\http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\vinic\Desktop\git\vortex-board\apps\core\views.py", line 56, in login_view
+    return render(request, 'core/login.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\vinic\Desktop\git\vortex-board\venv\Lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\vinic\Desktop\git\vortex-board\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\vinic\Desktop\git\vortex-board\venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: core/login.html
+ERROR 2025-05-30 14:17:51,363 basehttp 1860 9252 "GET /login/?next=/painel/ HTTP/1.1" 500 116059
+INFO 2025-05-30 14:17:51,384 basehttp 1860 7800 "GET /static/debug_toolbar/js/toolbar.js HTTP/1.1" 200 13404
+INFO 2025-05-30 14:17:51,384 basehttp 1860 9252 "GET /static/debug_toolbar/css/toolbar.css HTTP/1.1" 200 12621
+INFO 2025-05-30 14:17:51,484 basehttp 1860 9252 "GET /static/debug_toolbar/css/print.css HTTP/1.1" 200 43
+INFO 2025-05-30 14:17:51,515 basehttp 1860 9252 "GET /static/debug_toolbar/js/utils.js HTTP/1.1" 200 4527
+WARNING 2025-05-30 14:17:51,644 log 1860 9252 Not Found: /favicon.ico
+WARNING 2025-05-30 14:17:51,644 basehttp 1860 9252 "GET /favicon.ico HTTP/1.1" 404 12641

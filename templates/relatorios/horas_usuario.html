@@ -1,0 +1,335 @@
+<!-- templates/relatorios/horas_usuario.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">⏱️ Relatório de Horas</h1>
+                <nav class="text-sm text-gray-600">
+                    <a href="{% url 'core:painel' %}" class="hover:text-gray-900">Painel</a>
+                    <span class="mx-2">›</span>
+                    <a href="{% url 'relatorios:dashboard' %}" class="hover:text-gray-900">Relatórios</a>
+                    <span class="mx-2">›</span>
+                    <span>Horas Trabalhadas</span>
+                </nav>
+            </div>
+            <div class="flex space-x-3">
+                <a href="?{{ request.GET.urlencode }}&format=csv" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    📊 Exportar CSV
+                </a>
+                <a href="{% url 'relatorios:dashboard' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    ← Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">🔍 Filtros</h2>
+        
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label for="usuario" class="block text-sm font-medium text-gray-700 mb-1">
+                    Usuário
+                </label>
+                <select id="usuario" name="usuario"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Todos os usuários</option>
+                    {% for usuario in usuarios %}
+                    <option value="{{ usuario.id }}" {% if filtros.usuario_id == usuario.id|stringformat:"s" %}selected{% endif %}>
+                        {{ usuario.get_full_name|default:usuario.username }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="data_inicio" class="block text-sm font-medium text-gray-700 mb-1">
+                    Data Início
+                </label>
+                <input type="date" id="data_inicio" name="data_inicio" value="{{ filtros.data_inicio }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label for="data_fim" class="block text-sm font-medium text-gray-700 mb-1">
+                    Data Fim
+                </label>
+                <input type="date" id="data_fim" name="data_fim" value="{{ filtros.data_fim }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="flex items-end">
+                <button type="submit"
+                        class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Aplicar Filtros
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Lista de registros -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900">📋 Registros de Horas</h2>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Usuário
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Item
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Período
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Duração
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Projeto
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for registro in registros %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                                            <span class="text-white text-sm font-medium">
+                                                {{ registro.usuario.first_name|first|default:registro.usuario.username|first|upper }}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">
+                                                {{ registro.usuario.get_full_name|default:registro.usuario.username }}
+                                            </div>
+                                            <div class="text-sm text-gray-500">
+                                                {{ registro.usuario.get_tipo_display }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                
+                                <td class="px-6 py-4">
+                                    {% if registro.bug %}
+                                    <div class="flex items-center">
+                                        <span class="text-lg mr-2">🐛</span>
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">
+                                                {{ registro.bug.titulo|truncatechars:40 }}
+                                            </div>
+                                            <div class="text-xs text-gray-500">#{{ registro.bug.id }}</div>
+                                        </div>
+                                    </div>
+                                    {% elif registro.feature %}
+                                    <div class="flex items-center">
+                                        <span class="text-lg mr-2">✨</span>
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">
+                                                {{ registro.feature.titulo|truncatechars:40 }}
+                                            </div>
+                                            <div class="text-xs text-gray-500">#{{ registro.feature.id }}</div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-sm text-gray-400">Item removido</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <div>{{ registro.inicio|date:"d/m/Y H:i" }}</div>
+                                    {% if registro.fim %}
+                                    <div class="text-xs text-gray-500">{{ registro.fim|date:"H:i" }}</div>
+                                    {% else %}
+                                    <div class="text-xs text-green-600">Em andamento</div>
+                                    {% endif %}
+                                </td>
+                                
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if registro.duracao > 0 %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        {{ registro.duracao|floatformat:1 }}h
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        Ativo
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {% if registro.bug %}
+                                        {{ registro.bug.coluna.board.projeto.nome }}
+                                    {% elif registro.feature %}
+                                        {{ registro.feature.coluna.board.projeto.nome }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center">
+                                    <div class="text-gray-400 text-4xl mb-4">⏱️</div>
+                                    <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum registro encontrado</h3>
+                                    <p class="text-gray-500">Tente ajustar os filtros para encontrar registros.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginação simples -->
+                {% if registros.count > 100 %}
+                <div class="px-6 py-4 border-t border-gray-200">
+                    <div class="text-sm text-gray-500 text-center">
+                        Mostrando primeiros 100 registros. Use filtros para refinar a busca.
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar com resumos -->
+        <div class="space-y-6">
+            <!-- Resumo por usuário -->
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="px-4 py-3 border-b border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-900">👥 Resumo por Usuário</h3>
+                </div>
+                
+                <div class="divide-y divide-gray-200">
+                    {% for resumo in resumo_usuarios %}
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-2">
+                                    <span class="text-white text-xs font-medium">
+                                        {{ resumo.usuario.first_name|first|default:resumo.usuario.username|first|upper }}
+                                    </span>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900">
+                                    {{ resumo.usuario.get_full_name|default:resumo.usuario.username }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                            <div>
+                                <span class="text-gray-500">Horas:</span>
+                                <span class="font-medium">{{ resumo.total_horas|floatformat:1 }}h</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Registros:</span>
+                                <span class="font-medium">{{ resumo.total_registros }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="p-4 text-center text-sm text-gray-500">
+                        Nenhum registro no período
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Estatísticas gerais -->
+            <div class="bg-white rounded-lg shadow-sm border">
+                <div class="px-4 py-3 border-b border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-900">📊 Estatísticas</h3>
+                </div>
+                
+                <div class="p-4 space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total de Registros:</span>
+                        <span class="font-medium">{{ registros.count }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total de Horas:</span>
+                        <span class="font-medium">
+                            {% with total_horas=registros|length %}
+                                {% if total_horas > 0 %}
+                                    {{ registros.0.duracao|default:0|floatformat:1 }}h
+                                {% else %}
+                                    0h
+                                {% endif %}
+                            {% endwith %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Usuários Ativos:</span>
+                        <span class="font-medium">{{ resumo_usuarios|length }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Média por Usuário:</span>
+                        <span class="font-medium">
+                            {% if resumo_usuarios %}
+                                {% with total=resumo_usuarios|length %}
+                                    {% if total > 0 %}
+                                        {{ "0"|add:total|div:total|floatformat:1 }}h
+                                    {% else %}
+                                        0h
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                0h
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros rápidos -->
+            <div class="bg-blue-50 rounded-lg p-4">
+                <h4 class="text-sm font-semibold text-blue-900 mb-3">⚡ Filtros Rápidos</h4>
+                <div class="space-y-2">
+                    <a href="?data_inicio={{ "now"|date:"Y-m-d" }}" 
+                       class="block text-sm text-blue-700 hover:text-blue-900">
+                        📅 Hoje
+                    </a>
+                    <a href="?data_inicio={{ "now"|date:"Y-m-d"|add:"-7 days" }}" 
+                       class="block text-sm text-blue-700 hover:text-blue-900">
+                        📅 Últimos 7 dias
+                    </a>
+                    <a href="?data_inicio={{ "now"|date:"Y-m-d"|add:"-30 days" }}" 
+                       class="block text-sm text-blue-700 hover:text-blue-900">
+                        📅 Últimos 30 dias
+                    </a>
+                    <a href="?usuario={{ user.id }}" 
+                       class="block text-sm text-blue-700 hover:text-blue-900">
+                        👤 Apenas minhas horas
+                    </a>
+                </div>
+            </div>
+
+            <!-- Ajuda -->
+            <div class="bg-gray-50 rounded-lg p-4">
+                <h4 class="text-sm font-semibold text-gray-900 mb-3">💡 Dicas</h4>
+                <ul class="space-y-1 text-xs text-gray-600">
+                    <li>• Use os filtros para encontrar registros específicos</li>
+                    <li>• Exporte em CSV para análises externas</li>
+                    <li>• Registros "Em andamento" ainda não possuem duração</li>
+                    <li>• A duração é calculada automaticamente</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

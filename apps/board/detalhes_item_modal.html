@@ -1,0 +1,300 @@
+<!-- templates/board/detalhes_item_modal.html -->
+<div class="relative max-w-4xl mx-auto">
+    <!-- Header do modal -->
+    <div class="flex items-start justify-between pb-4 border-b border-gray-200">
+        <div class="flex items-start space-x-3">
+            <span class="text-2xl">
+                {% if item_type == 'bug' %}🐛{% else %}✨{% endif %}
+            </span>
+            <div>
+                <h3 class="text-xl font-semibold text-gray-900">{{ item.titulo }}</h3>
+                <div class="flex items-center space-x-4 mt-1 text-sm text-gray-500">
+                    <span>#{{ item.id }}</span>
+                    <span>•</span>
+                    <span>{{ item.coluna.titulo }}</span>
+                    <span>•</span>
+                    <span>Criado por {{ item.criado_por.get_full_name|default:item.criado_por.username }}</span>
+                    <span>•</span>
+                    <span>{{ item.criado_em|date:"d/m/Y H:i" }}</span>
+                </div>
+            </div>
+        </div>
+        <button onclick="fecharDetalhesItem()" class="text-gray-400 hover:text-gray-600">
+            ✕
+        </button>
+    </div>
+
+    <!-- Conteúdo do modal -->
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Coluna principal -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Descrição -->
+            {% if item.descricao %}
+            <div>
+                <h4 class="font-medium text-gray-900 mb-2">📝 Descrição</h4>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-gray-700 whitespace-pre-wrap">{{ item.descricao }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Campos específicos do Bug -->
+            {% if item_type == 'bug' %}
+                {% if item.passos_reproducao %}
+                <div>
+                    <h4 class="font-medium text-gray-900 mb-2">🔄 Passos para Reprodução</h4>
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p class="text-gray-700 whitespace-pre-wrap">{{ item.passos_reproducao }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
+
+            <!-- Campos específicos da Feature -->
+            {% if item_type == 'feature' %}
+                {% if item.especificacao_url %}
+                <div>
+                    <h4 class="font-medium text-gray-900 mb-2">📋 Especificação</h4>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <a href="{{ item.especificacao_url }}" target="_blank" 
+                           class="text-blue-600 hover:text-blue-800 underline">
+                            {{ item.especificacao_url }}
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
+
+            <!-- Comentários -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-medium text-gray-900">💬 Comentários ({{ comentarios.count }})</h4>
+                    {% if pode_comentar %}
+                    <button onclick="toggleFormComentario()" class="text-blue-600 hover:text-blue-700 text-sm">
+                        + Adicionar
+                    </button>
+                    {% endif %}
+                </div>
+
+                <!-- Formulário de comentário -->
+                {% if pode_comentar %}
+                <div id="form-comentario" class="hidden mb-4">
+                    <form hx-post="{% url 'board:adicionar_comentario' item_type item.id %}"
+                          hx-target="#lista-comentarios"
+                          hx-swap="afterbegin"
+                          class="space-y-3">
+                        {% csrf_token %}
+                        <textarea name="texto" rows="3" required
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Escreva seu comentário..."></textarea>
+                        <div class="flex justify-end space-x-2">
+                            <button type="button" onclick="toggleFormComentario()"
+                                    class="px-3 py-1 text-sm text-gray-600 hover:text-gray-800">
+                                Cancelar
+                            </button>
+                            <button type="submit"
+                                    class="px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                                Comentar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+
+                <!-- Lista de comentários -->
+                <div id="lista-comentarios" class="space-y-3">
+                    {% for comentario in comentarios %}
+                        {% include 'board/partials/comentario_item.html' %}
+                    {% empty %}
+                    <div class="text-center py-8 text-gray-500">
+                        💭 Nenhum comentário ainda. Seja o primeiro!
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar com informações -->
+        <div class="space-y-6">
+            <!-- Informações básicas -->
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                <h4 class="font-medium text-gray-900 mb-3">ℹ️ Informações</h4>
+                
+                <div class="space-y-3 text-sm">
+                    <!-- Status/Prioridade -->
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Prioridade:</span>
+                        <span class="px-2 py-1 rounded-full text-xs font-medium
+                                     {% if item.prioridade == 'critica' %}bg-red-100 text-red-800
+                                     {% elif item.prioridade == 'alta' %}bg-orange-100 text-orange-800
+                                     {% elif item.prioridade == 'media' %}bg-yellow-100 text-yellow-800
+                                     {% else %}bg-green-100 text-green-800{% endif %}">
+                            {% if item.prioridade == 'critica' %}🔴{% elif item.prioridade == 'alta' %}🟠{% elif item.prioridade == 'media' %}🟡{% else %}🟢{% endif %}
+                            {{ item.get_prioridade_display }}
+                        </span>
+                    </div>
+
+                    <!-- Responsável -->
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Responsável:</span>
+                        <span>
+                            {% if item.responsavel %}
+                                {{ item.responsavel.get_full_name|default:item.responsavel.username }}
+                            {% else %}
+                                <span class="text-gray-400">Não atribuído</span>
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Prazo -->
+                    {% if item.prazo %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Prazo:</span>
+                        <span class="{% if item.esta_atrasado %}text-red-600 font-medium{% endif %}">
+                            {{ item.prazo|date:"d/m/Y" }}
+                            {% if item.esta_atrasado %}⚠️{% endif %}
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Pontos -->
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Pontos:</span>
+                        <span class="font-medium">{{ item.calcular_pontos }}</span>
+                    </div>
+
+                    <!-- Campos específicos -->
+                    {% if item_type == 'bug' %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Severidade:</span>
+                        <span class="px-2 py-1 rounded-full text-xs font-medium
+                                     {% if item.severidade == 'critica' %}bg-red-100 text-red-800
+                                     {% elif item.severidade == 'alta' %}bg-orange-100 text-orange-800
+                                     {% elif item.severidade == 'media' %}bg-yellow-100 text-yellow-800
+                                     {% else %}bg-green-100 text-green-800{% endif %}">
+                            {{ item.get_severidade_display }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Ambiente:</span>
+                        <span>{{ item.ambiente }}</span>
+                    </div>
+                    {% else %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Categoria:</span>
+                        <span>{{ item.get_icon_categoria }} {{ item.get_categoria_display }}</span>
+                    </div>
+                    {% if item.estimativa_horas %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Estimativa:</span>
+                        <span>{{ item.estimativa_horas }}h</span>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Registros de hora -->
+            {% if pode_registrar_hora or registros_hora %}
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="font-medium text-gray-900">⏱️ Horas Trabalhadas</h4>
+                    {% if pode_registrar_hora %}
+                    <button onclick="iniciarRegistroHora()"
+                            class="text-blue-600 hover:text-blue-700 text-sm">
+                        + Iniciar
+                    </button>
+                    {% endif %}
+                </div>
+
+                {% if total_horas > 0 %}
+                <div class="mb-3 p-2 bg-blue-50 rounded text-sm">
+                    <strong>Total: {{ total_horas|floatformat:1 }}h</strong>
+                </div>
+                {% endif %}
+
+                <div class="space-y-2 text-sm">
+                    {% for registro in registros_hora|slice:":5" %}
+                    <div class="flex justify-between items-center py-1">
+                        <div>
+                            <div class="font-medium">{{ registro.usuario.get_full_name|default:registro.usuario.username }}</div>
+                            {% if registro.descricao %}
+                            <div class="text-gray-600 text-xs">{{ registro.descricao|truncatewords:8 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="text-right">
+                            {% if registro.fim %}
+                                <div class="font-medium">{{ registro.duracao|floatformat:1 }}h</div>
+                                <div class="text-gray-500 text-xs">{{ registro.inicio|date:"d/m H:i" }}</div>
+                            {% else %}
+                                <div class="text-green-600 font-medium">Em andamento</div>
+                                <button onclick="finalizarRegistroHora({{ registro.id }})"
+                                        class="text-red-600 hover:text-red-800 text-xs">
+                                    Finalizar
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-gray-500 text-center py-2">
+                        Nenhum registro ainda
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Ações -->
+            {% if pode_editar %}
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                <h4 class="font-medium text-gray-900 mb-3">⚙️ Ações</h4>
+                
+                <div class="space-y-2">
+                    <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                        ✏️ Editar Item
+                    </button>
+                    <button class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">
+                        📁 Mover para Coluna
+                    </button>
+                    <button class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded">
+                        🗑️ Arquivar Item
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleFormComentario() {
+    const form = document.getElementById('form-comentario');
+    form.classList.toggle('hidden');
+}
+
+function iniciarRegistroHora() {
+    // TODO: Implementar modal de registro de hora
+    showToast('Funcionalidade em desenvolvimento', 'info');
+}
+
+function finalizarRegistroHora(registroId) {
+    if (confirm('Finalizar registro de hora?')) {
+        fetch(`/board/registro-hora/${registroId}/finalizar/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+                // Recarregar modal ou atualizar seção
+                location.reload();
+            } else {
+                showToast(data.error, 'error');
+            }
+        });
+    }
+}
+</script>

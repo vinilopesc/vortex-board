@@ -1,0 +1,210 @@
+<!-- templates/board/criar_item_modal.html -->
+<div class="relative">
+    <!-- Header do modal -->
+    <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">➕ Criar Novo Item</h3>
+        <button onclick="fecharModalCriarItem()" class="text-gray-400 hover:text-gray-600">
+            ✕
+        </button>
+    </div>
+
+    <!-- Formulário -->
+    <form method="post" class="mt-6 space-y-6">
+        {% csrf_token %}
+
+        <!-- Tipo de item -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-3">Tipo de Item</label>
+            <div class="grid grid-cols-2 gap-4">
+                <label class="relative">
+                    <input type="radio" name="tipo_item" value="bug" class="sr-only peer" checked>
+                    <div class="cursor-pointer rounded-lg border-2 border-gray-200 p-4 text-center peer-checked:border-blue-500 peer-checked:bg-blue-50">
+                        <div class="text-2xl mb-2">🐛</div>
+                        <div class="font-medium text-gray-900">Bug</div>
+                        <div class="text-sm text-gray-500">Problema ou erro</div>
+                    </div>
+                </label>
+                <label class="relative">
+                    <input type="radio" name="tipo_item" value="feature" class="sr-only peer">
+                    <div class="cursor-pointer rounded-lg border-2 border-gray-200 p-4 text-center peer-checked:border-blue-500 peer-checked:bg-blue-50">
+                        <div class="text-2xl mb-2">✨</div>
+                        <div class="font-medium text-gray-900">Feature</div>
+                        <div class="text-sm text-gray-500">Nova funcionalidade</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Campos básicos -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+                <label for="titulo" class="block text-sm font-medium text-gray-700 mb-1">
+                    Título *
+                </label>
+                <input type="text" id="titulo" name="titulo" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="Descreva brevemente o item">
+            </div>
+
+            <div>
+                <label for="coluna_id" class="block text-sm font-medium text-gray-700 mb-1">
+                    Coluna *
+                </label>
+                <select id="coluna_id" name="coluna_id" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    {% for coluna in colunas %}
+                    <option value="{{ coluna.id }}">{{ coluna.titulo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="responsavel_id" class="block text-sm font-medium text-gray-700 mb-1">
+                    Responsável
+                </label>
+                <select id="responsavel_id" name="responsavel_id"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Selecionar responsável</option>
+                    {% for membro in membros %}
+                    <option value="{{ membro.id }}">{{ membro.get_full_name|default:membro.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="prioridade" class="block text-sm font-medium text-gray-700 mb-1">
+                    Prioridade
+                </label>
+                <select id="prioridade" name="prioridade"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="baixa">🟢 Baixa</option>
+                    <option value="media" selected>🟡 Média</option>
+                    <option value="alta">🟠 Alta</option>
+                    <option value="critica">🔴 Crítica</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="prazo" class="block text-sm font-medium text-gray-700 mb-1">
+                    Prazo
+                </label>
+                <input type="date" id="prazo" name="prazo"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+
+        <!-- Descrição -->
+        <div>
+            <label for="descricao" class="block text-sm font-medium text-gray-700 mb-1">
+                Descrição
+            </label>
+            <textarea id="descricao" name="descricao" rows="3"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Descreva detalhadamente o item..."></textarea>
+        </div>
+
+        <!-- Campos específicos para Bug -->
+        <div id="campos-bug" class="space-y-4">
+            <h4 class="font-medium text-gray-900">🐛 Detalhes do Bug</h4>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="severidade" class="block text-sm font-medium text-gray-700 mb-1">
+                        Severidade
+                    </label>
+                    <select id="severidade" name="severidade"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {% for value, label in Bug.SEVERIDADE_CHOICES %}
+                        <option value="{{ value }}" {% if value == 'media' %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="ambiente" class="block text-sm font-medium text-gray-700 mb-1">
+                        Ambiente
+                    </label>
+                    <input type="text" id="ambiente" name="ambiente" value="produção"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Ex: produção, homologação">
+                </div>
+            </div>
+
+            <div>
+                <label for="passos_reproducao" class="block text-sm font-medium text-gray-700 mb-1">
+                    Passos para Reprodução
+                </label>
+                <textarea id="passos_reproducao" name="passos_reproducao" rows="3"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="1. Faça isso...&#10;2. Clique aqui...&#10;3. Observe o erro..."></textarea>
+            </div>
+        </div>
+
+        <!-- Campos específicos para Feature -->
+        <div id="campos-feature" class="space-y-4 hidden">
+            <h4 class="font-medium text-gray-900">✨ Detalhes da Feature</h4>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="categoria" class="block text-sm font-medium text-gray-700 mb-1">
+                        Categoria
+                    </label>
+                    <select id="categoria" name="categoria"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {% for value, label in Feature.CATEGORIA_CHOICES %}
+                        <option value="{{ value }}" {% if value == 'backend' %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="estimativa_horas" class="block text-sm font-medium text-gray-700 mb-1">
+                        Estimativa (horas)
+                    </label>
+                    <input type="number" id="estimativa_horas" name="estimativa_horas" step="0.5" min="0"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Ex: 8">
+                </div>
+            </div>
+
+            <div>
+                <label for="especificacao_url" class="block text-sm font-medium text-gray-700 mb-1">
+                    URL da Especificação
+                </label>
+                <input type="url" id="especificacao_url" name="especificacao_url"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="https://...">
+            </div>
+        </div>
+
+        <!-- Botões de ação -->
+        <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+            <button type="button" onclick="fecharModalCriarItem()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                Cancelar
+            </button>
+            <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                Criar Item
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Alternar campos específicos baseado no tipo
+document.addEventListener('change', function(e) {
+    if (e.target.name === 'tipo_item') {
+        const camposBug = document.getElementById('campos-bug');
+        const camposFeature = document.getElementById('campos-feature');
+        
+        if (e.target.value === 'bug') {
+            camposBug.classList.remove('hidden');
+            camposFeature.classList.add('hidden');
+        } else {
+            camposBug.classList.add('hidden');
+            camposFeature.classList.remove('hidden');
+        }
+    }
+});
+</script>

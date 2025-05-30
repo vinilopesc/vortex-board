@@ -1,0 +1,495 @@
+/* static/css/custom.css */
+/* Estilos customizados do Vortex Board para complementar Tailwind CSS */
+
+/* === VARIÁVEIS CSS === */
+:root {
+  --vortex-primary: #3B82F6;
+  --vortex-secondary: #8B5CF6;
+  --vortex-dark: #1E293B;
+  --vortex-light: #F8FAFC;
+  --vortex-success: #10B981;
+  --vortex-warning: #F59E0B;
+  --vortex-error: #EF4444;
+  
+  /* Durações de animação */
+  --transition-fast: 0.15s;
+  --transition-normal: 0.3s;
+  --transition-slow: 0.5s;
+  
+  /* Sombras customizadas */
+  --shadow-board: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* === FONTE PADRÃO === */
+* {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* === SCROLLBAR CUSTOMIZADA === */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vortex-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+  transition: background var(--transition-normal);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 var(--vortex-light);
+}
+
+/* === ANIMAÇÕES CUSTOMIZADAS === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+/* === CLASSES UTILITÁRIAS === */
+.fade-in {
+  animation: fadeIn var(--transition-normal) ease-out;
+}
+
+.slide-in {
+  animation: slideIn var(--transition-normal) ease-out;
+}
+
+.pulse-animation {
+  animation: pulse 2s infinite;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+.bounce-animation {
+  animation: bounce 1s infinite;
+}
+
+/* === ESTILOS ESPECÍFICOS DO KANBAN === */
+
+/* Colunas do board */
+.kanban-coluna {
+  min-height: 400px;
+  transition: all var(--transition-normal) ease;
+  border: 2px dashed transparent;
+}
+
+.kanban-coluna.drag-over {
+  border-color: var(--vortex-primary);
+  background-color: rgba(59, 130, 246, 0.05);
+  transform: scale(1.02);
+}
+
+/* Items do kanban */
+.kanban-item {
+  transition: all var(--transition-normal) ease;
+  cursor: grab;
+  box-shadow: var(--shadow-card);
+}
+
+.kanban-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-board);
+}
+
+.kanban-item:active {
+  cursor: grabbing;
+}
+
+.kanban-item.dragging {
+  opacity: 0.6;
+  transform: rotate(3deg) scale(1.05);
+  box-shadow: var(--shadow-modal);
+  z-index: 1000;
+}
+
+/* Estados de prioridade */
+.prioridade-critica {
+  border-left: 4px solid var(--vortex-error);
+}
+
+.prioridade-alta {
+  border-left: 4px solid #F97316;
+}
+
+.prioridade-media {
+  border-left: 4px solid var(--vortex-warning);
+}
+
+.prioridade-baixa {
+  border-left: 4px solid var(--vortex-success);
+}
+
+/* Badges de prioridade */
+.badge-prioridade {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  line-height: 1;
+}
+
+.badge-critica {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--vortex-error);
+}
+
+.badge-alta {
+  background-color: rgba(249, 115, 22, 0.1);
+  color: #F97316;
+}
+
+.badge-media {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--vortex-warning);
+}
+
+.badge-baixa {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--vortex-success);
+}
+
+/* === INDICADORES DE LIMITE WIP === */
+.wip-normal {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: var(--vortex-success);
+}
+
+.wip-warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: var(--vortex-warning);
+}
+
+.wip-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: var(--vortex-error);
+}
+
+/* === INDICADORES DE USUÁRIOS ONLINE === */
+.user-online {
+  width: 8px;
+  height: 8px;
+  background-color: var(--vortex-success);
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+
+.user-offline {
+  width: 8px;
+  height: 8px;
+  background-color: #6B7280;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* === LOADING SPINNER === */
+.spinner {
+  border: 2px solid #F3F4F6;
+  border-top: 2px solid var(--vortex-primary);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-large {
+  width: 40px;
+  height: 40px;
+  border-width: 3px;
+}
+
+/* === TOAST NOTIFICATIONS === */
+.toast {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  max-width: 20rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-modal);
+  border: 1px solid #E5E7EB;
+  z-index: 9999;
+  animation: slideIn var(--transition-normal) ease-out;
+}
+
+.toast-success {
+  border-left: 4px solid var(--vortex-success);
+}
+
+.toast-error {
+  border-left: 4px solid var(--vortex-error);
+}
+
+.toast-warning {
+  border-left: 4px solid var(--vortex-warning);
+}
+
+.toast-info {
+  border-left: 4px solid var(--vortex-primary);
+}
+
+/* === HTMX INDICATORS === */
+.htmx-indicator {
+  opacity: 0;
+  transition: opacity var(--transition-normal) ease;
+}
+
+.htmx-request .htmx-indicator {
+  opacity: 1;
+}
+
+.htmx-request.htmx-indicator {
+  opacity: 1;
+}
+
+/* === MODALS === */
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+  transition: all var(--transition-normal) ease;
+}
+
+.modal-content {
+  animation: fadeIn var(--transition-normal) ease-out;
+}
+
+/* === FORMS === */
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--vortex-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-error {
+  border-color: var(--vortex-error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* === BUTTONS === */
+.btn {
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-normal) ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--vortex-primary), var(--vortex-secondary));
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+}
+
+/* === CARDS === */
+.card {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-card);
+  border: 1px solid #E5E7EB;
+  transition: all var(--transition-normal) ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-board);
+}
+
+.card-elevated {
+  box-shadow: var(--shadow-board);
+}
+
+/* === AVATARS === */
+.avatar {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar-online::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 25%;
+  height: 25%;
+  background-color: var(--vortex-success);
+  border: 2px solid white;
+  border-radius: 50%;
+}
+
+/* === PROGRESS BARS === */
+.progress-bar {
+  height: 0.5rem;
+  background-color: #E5E7EB;
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--vortex-primary), var(--vortex-secondary));
+  transition: width var(--transition-slow) ease;
+}
+
+/* === RESPONSIVE UTILITIES === */
+@media (max-width: 768px) {
+  .kanban-board {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .kanban-coluna {
+    min-height: 300px;
+  }
+  
+  .toast {
+    left: 1rem;
+    right: 1rem;
+    max-width: none;
+  }
+}
+
+/* === DARK MODE SUPPORT === */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vortex-light: #0F172A;
+    --vortex-dark: #F8FAFC;
+  }
+  
+  .card {
+    background: #1E293B;
+    border-color: #334155;
+  }
+  
+  .modal-content {
+    background: #1E293B;
+    border-color: #334155;
+  }
+}
+
+/* === PRINT STYLES === */
+@media print {
+  .kanban-item {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #E5E7EB;
+  }
+  
+  .kanban-coluna {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+  
+  .toast,
+  .modal-backdrop,
+  .spinner {
+    display: none !important;
+  }
+}
+
+/* === ACESSIBILIDADE === */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Foco visível para navegação por teclado */
+.focus-ring:focus {
+  outline: 2px solid var(--vortex-primary);
+  outline-offset: 2px;
+}
+
+/* === HIGH CONTRAST SUPPORT === */
+@media (prefers-contrast: high) {
+  .card {
+    border-width: 2px;
+  }
+  
+  .kanban-item {
+    border-width: 2px;
+  }
+  
+  .btn {
+    border-width: 2px;
+    border-color: currentColor;
+  }
+}
