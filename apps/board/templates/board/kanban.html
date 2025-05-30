@@ -1,6 +1,7 @@
 <!-- apps/board/templates/board/kanban.html -->
 {% extends 'base.html' %}
 {% load static %}
+{% load mathfilters %}
 
 {% block title %}{{ title }}{% endblock %}
 
@@ -140,7 +141,7 @@
                         {% with total_items=coluna.bug_items.count|add:coluna.feature_items.count %}
                             {% if total_items >= coluna.limite_wip %}
                                 wip-danger
-                            {% elif total_items >= 0.8|mul:coluna.limite_wip %}
+                            {% elif total_items >= 3 %}
                                 wip-warning
                             {% endif %}
                         {% endwith %}
@@ -230,7 +231,7 @@
 
     // Funções de modal
     function abrirModalCriarItem(colunaId = null) {
-        const url = {% url 'board:criar_item' board.id %} + (colunaId ? `?coluna=${colunaId}` : '');
+        const url = '{% url 'board:criar_item' board.id %}' + (colunaId ? `?coluna=${colunaId}` : '');
 
         fetch(url)
             .then(response => response.text())

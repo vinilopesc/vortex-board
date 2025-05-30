@@ -69,7 +69,13 @@ def dashboard_relatorios(request):
             coluna__board__projeto__in=projetos,
             coluna__titulo='Concluído'
         ).count(),
+        'total_usuarios': Usuario.objects.count(),  # ← ADICIONAR ESTA LINHA
     }
+
+    # Calcular taxa de conclusão no backend
+    total_items = stats['total_bugs'] + stats['total_features']
+    total_concluidos = stats['bugs_concluidos'] + stats['features_concluidas']
+    stats['taxa_conclusao'] = round((total_concluidos * 100 / total_items) if total_items > 0 else 0, 1)
 
     # Horas trabalhadas no último mês
     ultimo_mes = timezone.now() - timedelta(days=30)
@@ -95,9 +101,22 @@ def dashboard_relatorios(request):
     else:
         stats['horas_ultimo_mes'] = 0
 
+    # Calcular média de horas por projeto
+    stats['media_horas_projeto'] = round(
+        (stats['horas_ultimo_mes'] / stats['total_projetos']) if stats['total_projetos'] > 0 else 0,
+        1
+    )
+
+    # Anotar projetos com estatísticas
+    projetos_anotados = []
+    for projeto in projetos:
+        projeto.total_bugs = Bug.objects.filter(coluna__board__projeto=projeto).count()
+        projeto.total_features = Feature.objects.filter(coluna__board__projeto=projeto).count()
+        projetos_anotados.append(projeto)
+
     context = {
         'title': 'Relatórios - Dashboard',
-        'projetos': projetos,
+        'projetos': projetos_anotados,
         'stats': stats,
     }
 

@@ -145,15 +145,50 @@
                 <!-- Menu do usuário -->
                 <div class="flex items-center space-x-4">
                     <!-- Notificações -->
-                    <button type="button" class="relative p-2 text-gray-400 hover:text-gray-500">
-                        <span class="sr-only">Ver notificações</span>
-                        🔔
-                        <!-- Badge de notificação -->
-                        <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white"></span>
-                    </button>
+                    <div class="relative">
+                        <button id="btn-notificacoes" type="button" class="relative p-2 text-gray-400 hover:text-gray-500">
+                            <span class="sr-only">Ver notificações</span>
+                            🔔
+                            <!-- Badge de notificação -->
+                            <span id="badge-notificacoes" class="absolute top-0 right-0 block h-4 w-4 rounded-full bg-red-400 text-white text-xs font-bold text-center leading-4 hidden">0</span>
+                        </button>
+
+                        <!-- Dropdown de notificações -->
+                        <div id="dropdown-notificacoes" class="hidden absolute right-0 mt-2 w-96 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                            <div class="py-1">
+                                <!-- Header -->
+                                <div class="px-4 py-2 border-b border-gray-200">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-sm font-medium text-gray-900">🔔 Notificações</h3>
+                                        <button onclick="fecharModalNotificacoes()" class="text-gray-400 hover:text-gray-600">
+                                            ✕
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Lista de notificações -->
+                                <div id="lista-notificacoes" class="max-h-96 overflow-y-auto">
+                                    <div class="p-4 text-center text-gray-500">
+                                        <div class="spinner mx-auto"></div>
+                                        <p class="text-sm mt-2">Carregando...</p>
+                                    </div>
+                                </div>
+
+                                <!-- Footer -->
+                                <div class="px-4 py-2 border-t border-gray-200 bg-gray-50">
+                                    <div class="text-center">
+                                        <button class="text-xs text-blue-600 hover:text-blue-800">
+                                            Ver todas as notificações
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Perfil dropdown -->
                     <div class="relative" x-data="{ open: false }">
+                        <!-- resto do código do perfil permanece igual -->
                         <button @click="open = !open" class="flex items-center space-x-3 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
                                 {% if user.foto %}
@@ -188,6 +223,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </nav>
@@ -274,6 +310,29 @@
         {% endif %}
     </script>
 
-    {% block extra_js %}{% endblock %}
+
+<!-- Modal para criar projeto -->
+<div id="modal-novo-projeto" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div id="modal-novo-projeto-content">
+            <!-- Conteúdo carregado via AJAX -->
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="{% static 'js/painel.js' %}"></script>
+
+<script>
+// Garantir que as funções estão disponíveis globalmente
+window.fecharModalNovoProjeto = fecharModalNovoProjeto;
+window.fecharModalNotificacoes = fecharModalNotificacoes;
+
+// Função específica para abrir modal novo projeto (alternativa)
+function abrirNovoProjeto() {
+    abrirModalNovoProjeto();
+}
+</script>
+{% endblock %}
 </body>
 </html>

@@ -42,6 +42,8 @@ THIRD_PARTY_APPS = [
     # Frontend
     'django_htmx',
 
+    'mathfilters',
+
     # Utils
     'django_extensions',
 ]

@@ -38,6 +38,21 @@ def board_kanban_view(request, board_id):
                  queryset=Feature.objects.select_related('responsavel').filter(arquivado=False).order_by('ordem'))
     ).order_by('ordem')
 
+    # Calcular status WIP para cada coluna
+    for coluna in colunas:
+        total_items = coluna.bug_items.count() + coluna.feature_items.count()
+        coluna.total_items = total_items
+
+        # Definir classe CSS baseada no WIP limit
+        coluna.wip_status = 'normal'
+        if coluna.limite_wip > 0:
+            wip_threshold_80 = int(coluna.limite_wip * 0.8)
+
+            if total_items >= coluna.limite_wip:
+                coluna.wip_status = 'danger'
+            elif total_items >= wip_threshold_80:
+                coluna.wip_status = 'warning'
+
     # Estatísticas do board
     stats = {
         'total_bugs': Bug.objects.filter(coluna__board=board, arquivado=False).count(),
@@ -49,8 +64,15 @@ def board_kanban_view(request, board_id):
     }
 
     # Verificar gargalos WIP
-    from apps.core.utils import verificar_gargalos_wip
-    gargalos = verificar_gargalos_wip(board)
+    try:
+        from apps.core.utils import verificar_gargalos_wip
+        gargalos = verificar_gargalos_wip(board)
+    except Exception as e:
+        # Log do erro mas não quebra a página
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Erro ao verificar gargalos WIP: {e}")
+        gargalos = []
 
     context = {
         'title': f'{board.titulo} - Kanban',
@@ -63,7 +85,6 @@ def board_kanban_view(request, board_id):
     }
 
     return render(request, 'board/kanban.html', context)
-
 
 @login_required
 @require_POST
@@ -137,6 +158,136 @@ def mover_item_ajax(request):
 
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+
+# Adicionar estas views ao apps/core/views.py
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def criar_projeto_modal(request):
+    """
+    Modal para criar novo projeto
+    """
+    if request.method == 'POST':
+        nome = request.POST.get('nome', '').strip()
+        cliente = request.POST.get('cliente', '').strip()
+        descricao = request.POST.get('descricao', '').strip()
+
+        # Validações
+        if not nome:
+            messages.error(request, 'Nome do projeto é obrigatório')
+            return redirect('core:painel')
+
+        if not cliente:
+            messages.error(request, 'Cliente é obrigatório')
+            return redirect('core:painel')
+
+        # Verificar se já existe projeto com mesmo nome
+        if Projeto.objects.filter(nome=nome).exists():
+            messages.error(request, 'Já existe um projeto com este nome')
+            return redirect('core:painel')
+
+        try:
+            # Criar projeto
+            projeto = Projeto.objects.create(
+                nome=nome,
+                cliente=cliente,
+                descricao=descricao,
+                criado_por=request.user
+            )
+
+            # Adicionar criador como membro
+            projeto.membros.add(request.user)
+
+            # Criar board padrão
+            board = Board.objects.create(
+                titulo=f'{nome} - Sprint 1',
+                projeto=projeto,
+                descricao='Board principal do projeto'
+            )
+
+            messages.success(request, f'Projeto "{nome}" criado com sucesso!')
+            return redirect('board:kanban', board_id=board.id)
+
+        except Exception as e:
+            messages.error(request, f'Erro ao criar projeto: {str(e)}')
+            return redirect('core:painel')
+
+    # GET - Exibir formulário
+    context = {
+        'usuarios': Usuario.objects.filter(is_active=True).order_by('first_name', 'username')
+    }
+
+    return render(request, 'core/criar_projeto_modal.html', context)
+
+
+@login_required
+def notificacoes_usuario(request):
+    """
+    Lista notificações do usuário (sistema básico)
+    """
+    # Sistema básico de notificações usando mensagens Django
+    notificacoes = []
+
+    # Adicionar notificações baseadas em tarefas atrasadas
+    tarefas_atrasadas = Bug.objects.filter(
+        responsavel=request.user,
+        prazo__lt=timezone.now().date(),
+        arquivado=False
+    ).exclude(coluna__titulo='Concluído')
+
+    for tarefa in tarefas_atrasadas[:5]:  # Máximo 5
+        notificacoes.append({
+            'tipo': 'warning',
+            'titulo': 'Tarefa Atrasada',
+            'mensagem': f'Bug #{tarefa.id}: {tarefa.titulo}',
+            'data': tarefa.prazo,
+            'url': f'/board/item/bug/{tarefa.id}/',
+            'icone': '⚠️'
+        })
+
+    # Notificações de features atrasadas
+    features_atrasadas = Feature.objects.filter(
+        responsavel=request.user,
+        prazo__lt=timezone.now().date(),
+        arquivado=False
+    ).exclude(coluna__titulo='Concluído')
+
+    for feature in features_atrasadas[:5]:
+        notificacoes.append({
+            'tipo': 'warning',
+            'titulo': 'Feature Atrasada',
+            'mensagem': f'Feature #{feature.id}: {feature.titulo}',
+            'data': feature.prazo,
+            'url': f'/board/item/feature/{feature.id}/',
+            'icone': '⚠️'
+        })
+
+    # Notificações de novos projetos (se for admin/gerente)
+    if request.user.tipo in ['admin', 'gerente']:
+        projetos_recentes = Projeto.objects.filter(
+            criado_em__gte=timezone.now() - timedelta(days=7)
+        ).exclude(criado_por=request.user)[:3]
+
+        for projeto in projetos_recentes:
+            notificacoes.append({
+                'tipo': 'info',
+                'titulo': 'Novo Projeto',
+                'mensagem': f'Projeto "{projeto.nome}" criado por {projeto.criado_por.get_full_name()}',
+                'data': projeto.criado_em.date(),
+                'url': f'/painel/',
+                'icone': '📁'
+            })
+
+    # Ordenar por data (mais recentes primeiro)
+    notificacoes.sort(key=lambda x: x['data'], reverse=True)
+
+    context = {
+        'notificacoes': notificacoes[:10],  # Máximo 10 notificações
+        'total_nao_lidas': len([n for n in notificacoes if n['tipo'] == 'warning'])
+    }
+
+    return JsonResponse(context)
 
 
 @login_required

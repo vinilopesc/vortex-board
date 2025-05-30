@@ -249,7 +249,7 @@
                 <div class="space-y-2 text-xs text-gray-600">
                     <div>Última atualização: {{ "now"|date:"d/m/Y H:i" }}</div>
                     <div>Versão: v0.1.0</div>
-                    <div>Total de usuários: {{ request.user.__class__.objects.count }}</div>
+                    <div>Total de usuários: {{ stats.total_usuarios }}</div>
                 </div>
             </div>
         </div>

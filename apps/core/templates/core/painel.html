@@ -1,147 +1,232 @@
-<!-- templates/core/painel.html -->
+<!-- apps/core/templates/core/painel.html -->
 {% extends 'base.html' %}
 {% load static %}
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Estilos específicos do painel */
+    .projeto-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .projeto-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .quick-action {
+        transition: all 0.2s ease;
+    }
+
+    .quick-action:hover {
+        transform: scale(1.05);
+    }
+
+    .progress-ring {
+        transform: rotate(-90deg);
+    }
+
+    .notification-badge {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mx-auto px-4 py-6">
-    <!-- Header do painel -->
+    <!-- Header do Painel -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">
-            Olá, {{ user.get_full_name|default:user.username }}! 👋
-        </h1>
-        <p class="text-gray-600">
-            Bem-vindo ao seu painel de controle - {{ user.get_tipo_display }}
-        </p>
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">
+                    👋 Olá, {{ user.get_full_name|default:user.username }}!
+                </h1>
+                <p class="text-gray-600 mt-1">Bem-vindo ao seu painel de controle</p>
+            </div>
+
+            <!-- Ações rápidas -->
+            <div class="flex space-x-3">
+                {% if user.tipo in 'admin,gerente' %}
+                <button onclick="abrirModalNovoProjeto()"
+                        class="quick-action bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
+                    ➕ Novo Projeto
+                </button>
+                {% endif %}
+
+                <button onclick="abrirModalNotificacoes()"
+                        class="quick-action relative bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium">
+                    🔔 Notificações
+                    {% if notificacoes_nao_lidas > 0 %}
+                    <span class="notification-badge absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {{ notificacoes_nao_lidas }}
+                    </span>
+                    {% endif %}
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- Cards de estatísticas -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow-sm border p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <span class="text-blue-600">📊</span>
-                    </div>
+    <!-- Cards de Estatísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="stats-card rounded-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-100 text-sm font-medium">Projetos Ativos</p>
+                    <p class="text-3xl font-bold">{{ stats.projetos_ativos }}</p>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Projetos</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ stats.projetos_total }}</p>
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <span class="text-2xl">📁</span>
                 </div>
             </div>
         </div>
 
         <div class="bg-white rounded-lg shadow-sm border p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                        <span class="text-green-600">✅</span>
-                    </div>
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm font-medium">Minhas Tarefas</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.minhas_tarefas }}</p>
+                    <p class="text-xs text-gray-500">{{ stats.tarefas_concluidas }} concluídas</p>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Concluídas</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ stats.tarefas_concluidas }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-sm border p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                        <span class="text-yellow-600">⏱️</span>
-                    </div>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Responsável</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ stats.tarefas_responsavel }}</p>
+                <div class="bg-green-100 rounded-lg p-3">
+                    <span class="text-2xl text-green-600">✅</span>
                 </div>
             </div>
         </div>
 
         <div class="bg-white rounded-lg shadow-sm border p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <span class="text-purple-600">⏰</span>
-                    </div>
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm font-medium">Bugs Ativos</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.bugs_ativos }}</p>
+                    <p class="text-xs text-red-500">{{ stats.bugs_criticos }} críticos</p>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">Horas (30d)</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ stats.horas_registradas|floatformat:1 }}h</p>
+                <div class="bg-red-100 rounded-lg p-3">
+                    <span class="text-2xl text-red-600">🐛</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-500 text-sm font-medium">Horas (Semana)</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ stats.horas_semana|floatformat:1 }}</p>
+                    <p class="text-xs text-gray-500">trabalhadas</p>
+                </div>
+                <div class="bg-purple-100 rounded-lg p-3">
+                    <span class="text-2xl text-purple-600">⏱️</span>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Lista de projetos -->
+        <!-- Lista de Projetos -->
         <div class="lg:col-span-2">
             <div class="bg-white rounded-lg shadow-sm border">
-                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-gray-900">Meus Projetos</h2>
-                    {% if pode_criar_projeto %}
-                    <button class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                        + Novo Projeto
-                    </button>
-                    {% endif %}
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-semibold text-gray-900">📋 Meus Projetos</h2>
+                        <span class="text-sm text-gray-500">{{ projetos.count }} projetos</span>
+                    </div>
                 </div>
 
                 <div class="divide-y divide-gray-200">
                     {% for projeto in projetos %}
-                    <div class="p-6 hover:bg-gray-50">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="text-lg font-medium text-gray-900">
-                                {{ projeto.nome }}
-                            </h3>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Ativo
-                            </span>
+                    <div class="projeto-card p-6" onclick="window.location.href='{% url 'board:kanban' projeto.boards.first.id %}'">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-medium text-gray-900 mb-1">{{ projeto.nome }}</h3>
+                                <p class="text-sm text-gray-600 mb-3">{{ projeto.cliente }}</p>
+
+                                <!-- Progress do projeto -->
+                                <div class="flex items-center space-x-4 text-sm">
+                                    <div class="flex items-center">
+                                        <span class="text-green-600 mr-1">✅</span>
+                                        <span>{{ projeto.tarefas_concluidas }}/{{ projeto.total_tarefas }} tarefas</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="text-red-600 mr-1">🐛</span>
+                                        <span>{{ projeto.bugs_abertos }} bugs</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <span class="text-blue-600 mr-1">👥</span>
+                                        <span>{{ projeto.membros.count }} membros</span>
+                                    </div>
+                                </div>
+
+                                <!-- Barra de progresso -->
+                                <div class="mt-3">
+                                    <div class="flex justify-between text-xs text-gray-600 mb-1">
+                                        <span>Progresso</span>
+                                        <span>{{ projeto.progresso_percentual|floatformat:0 }}%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                             style="width: {{ projeto.progresso_percentual }}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ações do projeto -->
+                            <div class="ml-4 flex flex-col space-y-2">
+                                <a href="{% url 'board:kanban' projeto.boards.first.id %}"
+                                   class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-600 bg-blue-100 hover:bg-blue-200">
+                                    📋 Board
+                                </a>
+                                {% if user.tipo in 'admin,gerente' %}
+                                <a href="{% url 'relatorios:projeto_pdf' projeto.id %}"
+                                   class="inline-flex items-center px-3 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
+                                    📄 PDF
+                                </a>
+                                {% endif %}
+                            </div>
                         </div>
 
-                        <p class="text-sm text-gray-600 mb-3">
-                            <strong>Cliente:</strong> {{ projeto.cliente }}
-                        </p>
-
-                        {% if projeto.descricao %}
-                        <p class="text-sm text-gray-600 mb-4">
-                            {{ projeto.descricao|truncatewords:20 }}
-                        </p>
-                        {% endif %}
-
-                        <!-- Estatísticas do projeto -->
-                        <div class="flex items-center space-x-6 text-sm text-gray-500 mb-4">
-                            <span class="flex items-center">
-                                📋 {{ projeto.total_boards }} board{{ projeto.total_boards|pluralize }}
-                            </span>
-                            <span class="flex items-center">
-                                🐛 {{ projeto.total_bugs }} bug{{ projeto.total_bugs|pluralize }}
-                            </span>
-                            <span class="flex items-center">
-                                ✨ {{ projeto.total_features }} feature{{ projeto.total_features|pluralize }}
-                            </span>
-                        </div>
-
-                        <!-- Ações -->
-                        <div class="flex items-center space-x-4">
-                            {% for board in projeto.boards.all %}
-                            <a href="{% url 'board:kanban' board.id %}" 
-                               class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
-                                📋 {{ board.titulo }}
-                            </a>
-                            {% empty %}
-                            <span class="text-sm text-gray-400">Nenhum board criado</span>
-                            {% endfor %}
+                        <!-- Membros do projeto -->
+                        <div class="mt-4 flex items-center">
+                            <span class="text-xs text-gray-500 mr-2">Equipe:</span>
+                            <div class="flex -space-x-1">
+                                {% for membro in projeto.membros.all|slice:":5" %}
+                                <div class="w-6 h-6 bg-gray-400 rounded-full border-2 border-white flex items-center justify-center">
+                                    {% if membro.foto %}
+                                        <img class="w-6 h-6 rounded-full" src="{{ membro.foto.url }}" alt="{{ membro.get_full_name }}">
+                                    {% else %}
+                                        <span class="text-xs font-medium text-white">
+                                            {{ membro.first_name|first|default:membro.username|first|upper }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                                {% if projeto.membros.count > 5 %}
+                                <div class="w-6 h-6 bg-gray-300 rounded-full border-2 border-white flex items-center justify-center">
+                                    <span class="text-xs font-medium text-gray-600">+{{ projeto.membros.count|add:"-5" }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                     {% empty %}
                     <div class="p-8 text-center">
                         <div class="text-gray-400 text-4xl mb-4">📋</div>
                         <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum projeto encontrado</h3>
-                        <p class="text-gray-500 mb-4">Você ainda não é membro de nenhum projeto.</p>
-                        {% if pode_criar_projeto %}
-                        <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                        <p class="text-gray-500 mb-4">Você ainda não está participando de nenhum projeto.</p>
+                        {% if user.tipo in 'admin,gerente' %}
+                        <button onclick="abrirModalNovoProjeto()"
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
                             Criar Primeiro Projeto
                         </button>
                         {% endif %}
@@ -151,32 +236,33 @@
             </div>
         </div>
 
-        <!-- Sidebar com tarefas urgentes -->
+        <!-- Sidebar com atividades recentes e ações -->
         <div class="space-y-6">
-            <!-- Tarefas urgentes -->
+            <!-- Minhas tarefas urgentes -->
             <div class="bg-white rounded-lg shadow-sm border">
                 <div class="px-4 py-3 border-b border-gray-200">
-                    <h3 class="text-sm font-semibold text-gray-900">🚨 Tarefas Urgentes</h3>
+                    <h3 class="text-sm font-semibold text-gray-900">🔥 Tarefas Urgentes</h3>
                 </div>
-                
+
                 <div class="divide-y divide-gray-200">
                     {% for tarefa in tarefas_urgentes %}
                     <div class="p-4">
-                        <div class="flex items-start space-x-3">
-                            <span class="text-lg">
-                                {% if tarefa.tipo == 'bug' %}🐛{% else %}✨{% endif %}
+                        <div class="flex items-start">
+                            <span class="text-lg mr-2">
+                                {% if tarefa.bug %}🐛{% else %}✨{% endif %}
                             </span>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-900 truncate">
-                                    {{ tarefa.item.titulo }}
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-900 line-clamp-2">
+                                    {{ tarefa.titulo|truncatechars:40 }}
                                 </p>
-                                <p class="text-xs text-gray-500">
-                                    {% if tarefa.dias_atraso > 0 %}
-                                        Atrasado há {{ tarefa.dias_atraso }} dia{{ tarefa.dias_atraso|pluralize }}
-                                    {% else %}
-                                        Vence hoje
+                                <div class="flex items-center mt-1 text-xs text-gray-500">
+                                    <span class="px-2 py-1 rounded-full {% if tarefa.prioridade == 'critica' %}bg-red-100 text-red-800{% elif tarefa.prioridade == 'alta' %}bg-orange-100 text-orange-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                        {{ tarefa.get_prioridade_display }}
+                                    </span>
+                                    {% if tarefa.prazo %}
+                                    <span class="ml-2">📅 {{ tarefa.prazo|date:"d/m" }}</span>
                                     {% endif %}
-                                </p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -193,45 +279,200 @@
                 <div class="px-4 py-3 border-b border-gray-200">
                     <h3 class="text-sm font-semibold text-gray-900">📈 Atividade Recente</h3>
                 </div>
-                
-                <div class="p-4 space-y-3">
-                    <div class="flex items-center space-x-3 text-sm">
-                        <span class="w-2 h-2 bg-green-400 rounded-full"></span>
-                        <span class="text-gray-600">Sistema carregado com sucesso</span>
+
+                <div class="divide-y divide-gray-200">
+                    {% for atividade in atividades_recentes %}
+                    <div class="p-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-900">{{ atividade.descricao }}</p>
+                                <p class="text-xs text-gray-500">{{ atividade.quando|timesince }} atrás</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex items-center space-x-3 text-sm">
-                        <span class="w-2 h-2 bg-blue-400 rounded-full"></span>
-                        <span class="text-gray-600">Login realizado</span>
+                    {% empty %}
+                    <div class="p-4 text-center text-sm text-gray-500">
+                        Nenhuma atividade recente
                     </div>
-                    <div class="text-xs text-gray-400 text-center pt-2">
-                        Use o sistema para ver mais atividades
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
 
-            <!-- Quick actions -->
+            <!-- Ações rápidas -->
             <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4">
-                <h3 class="text-sm font-semibold text-gray-900 mb-3">🚀 Ações Rápidas</h3>
+                <h3 class="text-sm font-semibold text-gray-900 mb-3">⚡ Ações Rápidas</h3>
+
                 <div class="space-y-2">
-                    <a href="{% url 'core:perfil' %}" 
-                       class="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-white hover:shadow-sm rounded-lg transition">
+                    {% if user.tipo in 'admin,gerente' %}
+                    <a href="{% url 'relatorios:dashboard' %}"
+                       class="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-white hover:bg-opacity-50 rounded transition">
+                        📊 Ver Relatórios
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'relatorios:horas_usuario' %}?usuario={{ user.id }}"
+                       class="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-white hover:bg-opacity-50 rounded transition">
+                        ⏱️ Minhas Horas
+                    </a>
+
+                    <a href="{% url 'core:perfil' %}"
+                       class="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-white hover:bg-opacity-50 rounded transition">
                         👤 Meu Perfil
                     </a>
-                    {% if user.tipo in 'admin,gerente' %}
-                    <a href="{% url 'relatorios:dashboard' %}" 
-                       class="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-white hover:shadow-sm rounded-lg transition">
-                        📊 Relatórios
-                    </a>
-                    {% endif %}
+
                     {% if user.tipo == 'admin' %}
                     <a href="/admin/" target="_blank"
-                       class="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-white hover:shadow-sm rounded-lg transition">
-                        ⚙️ Admin Django
+                       class="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-white hover:bg-opacity-50 rounded transition">
+                        ⚙️ Administração
                     </a>
                     {% endif %}
+                </div>
+            </div>
+
+            <!-- Widget de progresso semanal -->
+            <div class="bg-white rounded-lg shadow-sm border p-4">
+                <h3 class="text-sm font-semibold text-gray-900 mb-3">📅 Progresso Semanal</h3>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Tarefas concluídas</span>
+                        <span class="font-medium">{{ stats.tarefas_concluidas_semana }}/{{ stats.meta_semanal }}</span>
+                    </div>
+
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        {% widthratio stats.tarefas_concluidas_semana stats.meta_semanal 100 as progresso_semanal %}
+                        <div class="bg-green-500 h-2 rounded-full transition-all duration-300"
+                             style="width: {{ progresso_semanal|default:0 }}%"></div>
+                    </div>
+
+                    <div class="text-xs text-gray-500">
+                        {% if progresso_semanal >= 100 %}
+                            🎉 Meta semanal atingida!
+                        {% elif progresso_semanal >= 75 %}
+                            🔥 Quase lá! Continue assim!
+                        {% else %}
+                            💪 Vamos lá, você consegue!
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal para notificações -->
+<div id="modal-notificacoes" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="flex items-center justify-between pb-3 border-b">
+            <h3 class="text-lg font-semibold text-gray-900">🔔 Notificações</h3>
+            <button onclick="fecharModalNotificacoes()" class="text-gray-400 hover:text-gray-600">
+                ✕
+            </button>
+        </div>
+
+        <div class="mt-4">
+            <div class="space-y-3 max-h-96 overflow-y-auto">
+                {% for notificacao in notificacoes %}
+                <div class="flex items-start space-x-3 p-3 {% if not notificacao.lida %}bg-blue-50{% endif %} rounded-lg">
+                    <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 {% if notificacao.lida %}opacity-30{% endif %}"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">{{ notificacao.titulo }}</p>
+                        <p class="text-sm text-gray-600">{{ notificacao.mensagem }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ notificacao.criado_em|timesince }} atrás</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8 text-gray-500">
+                    <span class="text-4xl">📭</span>
+                    <p class="mt-2">Nenhuma notificação</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if notificacoes %}
+            <div class="mt-4 pt-3 border-t">
+                <button class="text-sm text-blue-600 hover:text-blue-800">
+                    Marcar todas como lidas
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal para criar projeto -->
+<div id="modal-novo-projeto" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div id="modal-novo-projeto-content">
+            <!-- Conteúdo carregado via AJAX -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/painel.js' %}"></script>
+
+<script>
+// Garantir que as funções estão disponíveis globalmente
+window.fecharModalNovoProjeto = fecharModalNovoProjeto;
+window.fecharModalNotificacoes = fecharModalNotificacoes;
+
+// Função específica para abrir modal novo projeto (alternativa)
+function abrirModalNovoProjeto() {
+    document.getElementById('modal-novo-projeto').classList.remove('hidden');
+
+    // Carregar conteúdo via AJAX se necessário
+    fetch('/projetos/criar/')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('modal-novo-projeto-content').innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Erro ao carregar modal:', error);
+            document.getElementById('modal-novo-projeto-content').innerHTML = `
+                <div class="text-center py-8">
+                    <p class="text-red-600">Erro ao carregar formulário</p>
+                    <button onclick="fecharModalNovoProjeto()" class="mt-4 px-4 py-2 bg-gray-500 text-white rounded">
+                        Fechar
+                    </button>
+                </div>
+            `;
+        });
+}
+
+// Função para abrir modal de notificações
+function abrirModalNotificacoes() {
+    document.getElementById('modal-notificacoes').classList.remove('hidden');
+}
+
+// Função para fechar modais
+function fecharModalNovoProjeto() {
+    document.getElementById('modal-novo-projeto').classList.add('hidden');
+}
+
+function fecharModalNotificacoes() {
+    document.getElementById('modal-notificacoes').classList.add('hidden');
+}
+
+// Fechar modais clicando fora
+window.onclick = function(event) {
+    const modalProjeto = document.getElementById('modal-novo-projeto');
+    const modalNotif = document.getElementById('modal-notificacoes');
+
+    if (event.target === modalProjeto) {
+        fecharModalNovoProjeto();
+    }
+    if (event.target === modalNotif) {
+        fecharModalNotificacoes();
+    }
+}
+
+// Auto-refresh para estatísticas (opcional)
+setInterval(function() {
+    // TODO: Implementar refresh das estatísticas via AJAX
+    console.log('Checking for updates...');
+}, 300000); // 5 minutos
+</script>
 {% endblock %}
