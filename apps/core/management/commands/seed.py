@@ -43,7 +43,7 @@ class Command(BaseCommand):
         self._exibir_resumo()
 
     def _limpar_dados(self):
-        """Remove todos os dados exceto superusuário"""
+        """Remove todos os dados exceto superusuário original"""
         Comentario.objects.all().delete()
         RegistroHora.objects.all().delete()
         Bug.objects.all().delete()
@@ -51,136 +51,218 @@ class Command(BaseCommand):
         Coluna.objects.all().delete()
         Board.objects.all().delete()
         Projeto.objects.all().delete()
+
+        # Manter apenas superusuários originais (criados fora do seed)
+        usuarios_removidos = Usuario.objects.exclude(is_superuser=True).count()
         Usuario.objects.exclude(is_superuser=True).delete()
 
+        if usuarios_removidos > 0:
+            self.stdout.write(f'  🗑️  {usuarios_removidos} usuários removidos (superusuários mantidos)')
+        else:
+            self.stdout.write('  🗑️  Dados limpos')
+
     def _criar_usuarios(self):
-        """Cria usuários com diferentes níveis de acesso"""
-        self.stdout.write('👥 Criando usuários...')
+        """Cria usuários com diferentes níveis de acesso (ou busca se já existem)"""
+        self.stdout.write('👥 Criando/verificando usuários...')
 
         usuarios = {}
+        usuarios_criados = 0
+        usuarios_existentes = 0
 
-        # Admin
-        usuarios['admin'] = Usuario.objects.create_user(
-            username='admin',
-            email='admin@vortex.com.br',
-            password='admin123',
-            first_name='Administrador',
-            last_name='Sistema',
-            tipo='admin',
-            is_staff=True,
-            is_superuser=True
-        )
+        # Configurações dos usuários
+        usuarios_config = [
+            {
+                'key': 'admin',
+                'username': 'admin',
+                'email': 'admin@vortex.com.br',
+                'password': 'admin123',
+                'first_name': 'Administrador',
+                'last_name': 'Sistema',
+                'tipo': 'admin',
+                'is_staff': True,
+                'is_superuser': True,
+                'telefone': ''
+            },
+            {
+                'key': 'vini',
+                'username': 'vini',
+                'email': 'vini@vortex.com.br',
+                'password': 'vini123',
+                'first_name': 'Vinícius',
+                'last_name': 'Oliveira',
+                'tipo': 'gerente',
+                'is_staff': False,
+                'is_superuser': False,
+                'telefone': '(31) 98765-4321'
+            },
+            {
+                'key': 'meira',
+                'username': 'meira',
+                'email': 'meira@vortex.com.br',
+                'password': 'meira123',
+                'first_name': 'João',
+                'last_name': 'Meira',
+                'tipo': 'gerente',
+                'is_staff': False,
+                'is_superuser': False,
+                'telefone': '(31) 98765-4322'
+            },
+            {
+                'key': 'alice',
+                'username': 'alice',
+                'email': 'alice@vortex.com.br',
+                'password': 'alice123',
+                'first_name': 'Alice',
+                'last_name': 'Santos',
+                'tipo': 'funcionario',
+                'is_staff': False,
+                'is_superuser': False,
+                'telefone': '(31) 98765-4323'
+            },
+            {
+                'key': 'bob',
+                'username': 'bob',
+                'email': 'bob@vortex.com.br',
+                'password': 'bob123',
+                'first_name': 'Roberto',
+                'last_name': 'Silva',
+                'tipo': 'funcionario',
+                'is_staff': False,
+                'is_superuser': False,
+                'telefone': '(31) 98765-4324'
+            },
+            {
+                'key': 'carol',
+                'username': 'carol',
+                'email': 'carol@vortex.com.br',
+                'password': 'carol123',
+                'first_name': 'Carolina',
+                'last_name': 'Ferreira',
+                'tipo': 'funcionario',
+                'is_staff': False,
+                'is_superuser': False,
+                'telefone': '(31) 98765-4325'
+            }
+        ]
 
-        # Gerente - Vini
-        usuarios['vini'] = Usuario.objects.create_user(
-            username='vini',
-            email='vini@vortex.com.br',
-            password='vini123',
-            first_name='Vinícius',
-            last_name='Oliveira',
-            tipo='gerente',
-            telefone='(31) 98765-4321'
-        )
+        # Criar ou buscar cada usuário
+        for config in usuarios_config:
+            try:
+                # Tentar buscar usuário existente
+                usuario = Usuario.objects.get(username=config['username'])
+                usuarios[config['key']] = usuario
+                usuarios_existentes += 1
 
-        # Gerente - Meira
-        usuarios['meira'] = Usuario.objects.create_user(
-            username='meira',
-            email='meira@vortex.com.br',
-            password='meira123',
-            first_name='João',
-            last_name='Meira',
-            tipo='gerente',
-            telefone='(31) 98765-4322'
-        )
+            except Usuario.DoesNotExist:
+                # Criar novo usuário se não existe
+                usuario = Usuario.objects.create_user(
+                    username=config['username'],
+                    email=config['email'],
+                    password=config['password'],
+                    first_name=config['first_name'],
+                    last_name=config['last_name'],
+                    tipo=config['tipo'],
+                    is_staff=config['is_staff'],
+                    is_superuser=config['is_superuser'],
+                    telefone=config['telefone']
+                )
+                usuarios[config['key']] = usuario
+                usuarios_criados += 1
 
-        # Funcionários
-        usuarios['alice'] = Usuario.objects.create_user(
-            username='alice',
-            email='alice@vortex.com.br',
-            password='alice123',
-            first_name='Alice',
-            last_name='Santos',
-            tipo='funcionario',
-            telefone='(31) 98765-4323'
-        )
-
-        usuarios['bob'] = Usuario.objects.create_user(
-            username='bob',
-            email='bob@vortex.com.br',
-            password='bob123',
-            first_name='Roberto',
-            last_name='Silva',
-            tipo='funcionario',
-            telefone='(31) 98765-4324'
-        )
-
-        usuarios['carol'] = Usuario.objects.create_user(
-            username='carol',
-            email='carol@vortex.com.br',
-            password='carol123',
-            first_name='Carolina',
-            last_name='Ferreira',
-            tipo='funcionario',
-            telefone='(31) 98765-4325'
-        )
-
-        self.stdout.write(f'  ✓ {len(usuarios)} usuários criados')
+        self.stdout.write(f'  ✓ {usuarios_criados} usuários criados, {usuarios_existentes} já existiam')
         return usuarios
 
     def _criar_projeto_demo(self, usuarios):
-        """Cria projeto de demonstração"""
-        self.stdout.write('📁 Criando projeto demo...')
+        """Cria projeto de demonstração (ou busca se já existe)"""
+        self.stdout.write('📁 Criando/verificando projeto demo...')
 
-        projeto = Projeto.objects.create(
-            nome='Demo Vortex',
-            cliente='Cliente Exemplo S.A.',
-            descricao=(
-                'Projeto de demonstração do sistema Vortex Board. '
-                'Este projeto contém exemplos de todas as funcionalidades '
-                'disponíveis no sistema.'
-            ),
-            criado_por=usuarios['vini']
-        )
+        projeto_nome = 'Demo Vortex'
 
-        # Adiciona todos os usuários como membros
+        try:
+            # Tentar buscar projeto existente
+            projeto = Projeto.objects.get(nome=projeto_nome)
+            self.stdout.write('  ✓ Projeto demo já existe')
+
+        except Projeto.DoesNotExist:
+            # Criar novo projeto se não existe
+            projeto = Projeto.objects.create(
+                nome=projeto_nome,
+                cliente='Cliente Exemplo S.A.',
+                descricao=(
+                    'Projeto de demonstração do sistema Vortex Board. '
+                    'Este projeto contém exemplos de todas as funcionalidades '
+                    'disponíveis no sistema.'
+                ),
+                criado_por=usuarios['vini']
+            )
+            self.stdout.write('  ✓ Projeto demo criado')
+
+        # Garantir que todos os usuários são membros
         projeto.membros.set(usuarios.values())
 
-        self.stdout.write('  ✓ Projeto demo criado')
         return projeto
 
     def _criar_board_com_colunas(self, projeto):
-        """Cria board com colunas padrão"""
-        self.stdout.write('📋 Criando board e colunas...')
+        """Cria board com colunas customizadas (ou busca se já existe)"""
+        self.stdout.write('📋 Criando/verificando board e colunas...')
 
-        board = Board.objects.create(
-            titulo='Sprint 1 - MVP',
-            projeto=projeto,
-            descricao='Primeira sprint do projeto Demo Vortex'
-        )
+        board_titulo = 'Sprint 1 - MVP'
 
-        # Colunas com configurações específicas
-        colunas_config = [
-            ('Backlog', '#6B7280', 0),  # Cinza
-            ('Em Progresso', '#3B82F6', 3),  # Azul, WIP limit 3
-            ('Em Revisão', '#F59E0B', 2),  # Amarelo, WIP limit 2
-            ('Concluído', '#10B981', 0),  # Verde
-        ]
+        try:
+            # Tentar buscar board existente
+            board = Board.objects.get(titulo=board_titulo, projeto=projeto)
+            self.stdout.write('  ✓ Board já existe')
 
-        for idx, (titulo, cor, wip) in enumerate(colunas_config):
-            Coluna.objects.create(
-                titulo=titulo,
-                board=board,
-                ordem=idx,
-                cor=cor,
-                limite_wip=wip
+        except Board.DoesNotExist:
+            # Criar novo board se não existe
+            board = Board.objects.create(
+                titulo=board_titulo,
+                projeto=projeto,
+                descricao='Primeira sprint do projeto Demo Vortex'
             )
+            self.stdout.write('  ✓ Board criado')
 
-        self.stdout.write('  ✓ Board com 4 colunas criado')
+        # Aguardar signal criar colunas padrão, depois customizar
+        # O signal post_save já criou colunas básicas
+
+        # Configurações customizadas para as colunas
+        colunas_config = {
+            'Backlog': {'cor': '#6B7280', 'limite_wip': 0},  # Cinza
+            'Em Progresso': {'cor': '#3B82F6', 'limite_wip': 3},  # Azul
+            'Em Revisão': {'cor': '#F59E0B', 'limite_wip': 2},  # Amarelo
+            'Concluído': {'cor': '#10B981', 'limite_wip': 0},  # Verde
+        }
+
+        # Atualizar colunas criadas pelo signal com configurações específicas
+        colunas_atualizadas = 0
+        for coluna in board.colunas.all():
+            if coluna.titulo in colunas_config:
+                config = colunas_config[coluna.titulo]
+                # Só atualizar se necessário
+                if coluna.cor != config['cor'] or coluna.limite_wip != config['limite_wip']:
+                    coluna.cor = config['cor']
+                    coluna.limite_wip = config['limite_wip']
+                    coluna.save()
+                    colunas_atualizadas += 1
+
+        if colunas_atualizadas > 0:
+            self.stdout.write(f'  ✓ {colunas_atualizadas} colunas customizadas')
+        else:
+            self.stdout.write('  ✓ Colunas já customizadas')
+
         return board
 
     def _criar_items_demo(self, board, usuarios):
-        """Cria bugs e features de demonstração"""
-        self.stdout.write('🎯 Criando items (bugs e features)...')
+        """Cria bugs e features de demonstração (se não existirem)"""
+        self.stdout.write('🎯 Criando/verificando items (bugs e features)...')
+
+        # Verificar se já existem items neste board
+        if Bug.objects.filter(coluna__board=board).exists() or Feature.objects.filter(coluna__board=board).exists():
+            total_bugs = Bug.objects.filter(coluna__board=board).count()
+            total_features = Feature.objects.filter(coluna__board=board).count()
+            self.stdout.write(f'  ✓ Items já existem: {total_features} features, {total_bugs} bugs')
+            # Retornar items existentes
+            return list(Bug.objects.filter(coluna__board=board)) + list(Feature.objects.filter(coluna__board=board))
 
         colunas = board.colunas.all()
         items = []
@@ -326,86 +408,108 @@ class Command(BaseCommand):
         return items
 
     def _criar_registros_hora(self, items, usuarios):
-        """Cria registros de horas trabalhadas"""
-        self.stdout.write('⏱️  Criando registros de horas...')
+        """Cria registros de horas trabalhadas (se não existirem)"""
+        self.stdout.write('⏱️  Criando/verificando registros de horas...')
+
+        # Verificar se já existem registros
+        if RegistroHora.objects.filter(usuario__in=usuarios.values()).exists():
+            total_registros = RegistroHora.objects.filter(usuario__in=usuarios.values()).count()
+            self.stdout.write(f'  ✓ {total_registros} registros de hora já existem')
+            return
 
         registros_criados = 0
 
         # Feature concluída - documentação
-        feature_doc = [item for item in items if 'Documentação' in item.titulo][0]
-        RegistroHora.objects.create(
-            usuario=usuarios['bob'],
-            feature=feature_doc,
-            inicio=timezone.now() - timedelta(days=3, hours=8),
-            fim=timezone.now() - timedelta(days=3, hours=4),
-            descricao='Escrita da documentação básica da API'
-        )
-        registros_criados += 1
+        feature_doc = [item for item in items if 'Documentação' in item.titulo]
+        if feature_doc:
+            feature_doc = feature_doc[0]
+            RegistroHora.objects.create(
+                usuario=usuarios['bob'],
+                feature=feature_doc,
+                inicio=timezone.now() - timedelta(days=3, hours=8),
+                fim=timezone.now() - timedelta(days=3, hours=4),
+                descricao='Escrita da documentação básica da API'
+            )
+            registros_criados += 1
 
         # Bug em progresso - login
-        bug_login = [item for item in items if 'login' in item.titulo][0]
-        RegistroHora.objects.create(
-            usuario=usuarios['bob'],
-            bug=bug_login,
-            inicio=timezone.now() - timedelta(hours=2),
-            fim=timezone.now() - timedelta(minutes=30),
-            descricao='Investigação inicial do problema'
-        )
-        registros_criados += 1
+        bug_login = [item for item in items if 'login' in item.titulo]
+        if bug_login:
+            bug_login = bug_login[0]
+            RegistroHora.objects.create(
+                usuario=usuarios['bob'],
+                bug=bug_login,
+                inicio=timezone.now() - timedelta(hours=2),
+                fim=timezone.now() - timedelta(minutes=30),
+                descricao='Investigação inicial do problema'
+            )
+            registros_criados += 1
 
         # Feature em progresso - dashboard
-        feature_dash = [item for item in items if 'Dashboard' in item.titulo][0]
-        RegistroHora.objects.create(
-            usuario=usuarios['alice'],
-            feature=feature_dash,
-            inicio=timezone.now() - timedelta(days=1, hours=6),
-            fim=timezone.now() - timedelta(days=1, hours=2),
-            descricao='Implementação dos gráficos base'
-        )
-        RegistroHora.objects.create(
-            usuario=usuarios['alice'],
-            feature=feature_dash,
-            inicio=timezone.now() - timedelta(hours=3),
-            fim=None,  # Em andamento
-            descricao='Ajustes de responsividade'
-        )
-        registros_criados += 2
+        feature_dash = [item for item in items if 'Dashboard' in item.titulo]
+        if feature_dash:
+            feature_dash = feature_dash[0]
+            RegistroHora.objects.create(
+                usuario=usuarios['alice'],
+                feature=feature_dash,
+                inicio=timezone.now() - timedelta(days=1, hours=6),
+                fim=timezone.now() - timedelta(days=1, hours=2),
+                descricao='Implementação dos gráficos base'
+            )
+            RegistroHora.objects.create(
+                usuario=usuarios['alice'],
+                feature=feature_dash,
+                inicio=timezone.now() - timedelta(hours=3),
+                fim=None,  # Em andamento
+                descricao='Ajustes de responsividade'
+            )
+            registros_criados += 2
 
         self.stdout.write(f'  ✓ {registros_criados} registros de hora criados')
 
     def _criar_comentarios(self, items, usuarios):
-        """Cria comentários nos items"""
-        self.stdout.write('💬 Criando comentários...')
+        """Cria comentários nos items (se não existirem)"""
+        self.stdout.write('💬 Criando/verificando comentários...')
+
+        # Verificar se já existem comentários
+        if Comentario.objects.filter(usuario__in=usuarios.values()).exists():
+            total_comentarios = Comentario.objects.filter(usuario__in=usuarios.values()).count()
+            self.stdout.write(f'  ✓ {total_comentarios} comentários já existem')
+            return
 
         comentarios_criados = 0
 
         # Comentários no bug de login
-        bug_login = [item for item in items if 'login' in item.titulo][0]
-        Comentario.objects.create(
-            usuario=usuarios['meira'],
-            bug=bug_login,
-            texto='Prioridade alta! Vários clientes reportaram este problema.'
-        )
-        Comentario.objects.create(
-            usuario=usuarios['bob'],
-            bug=bug_login,
-            texto='Identificado o problema: regex de validação não aceita formato de email. Trabalhando na correção.'
-        )
-        comentarios_criados += 2
+        bug_login = [item for item in items if 'login' in item.titulo]
+        if bug_login:
+            bug_login = bug_login[0]
+            Comentario.objects.create(
+                usuario=usuarios['meira'],
+                bug=bug_login,
+                texto='Prioridade alta! Vários clientes reportaram este problema.'
+            )
+            Comentario.objects.create(
+                usuario=usuarios['bob'],
+                bug=bug_login,
+                texto='Identificado o problema: regex de validação não aceita formato de email. Trabalhando na correção.'
+            )
+            comentarios_criados += 2
 
         # Comentários na feature de dashboard
-        feature_dash = [item for item in items if 'Dashboard' in item.titulo][0]
-        Comentario.objects.create(
-            usuario=usuarios['vini'],
-            feature=feature_dash,
-            texto='Incluir gráfico de burndown e velocity do sprint atual.'
-        )
-        Comentario.objects.create(
-            usuario=usuarios['alice'],
-            feature=feature_dash,
-            texto='Chart.js implementado. Faltam apenas os ajustes de cores para seguir a identidade visual.'
-        )
-        comentarios_criados += 2
+        feature_dash = [item for item in items if 'Dashboard' in item.titulo]
+        if feature_dash:
+            feature_dash = feature_dash[0]
+            Comentario.objects.create(
+                usuario=usuarios['vini'],
+                feature=feature_dash,
+                texto='Incluir gráfico de burndown e velocity do sprint atual.'
+            )
+            Comentario.objects.create(
+                usuario=usuarios['alice'],
+                feature=feature_dash,
+                texto='Chart.js implementado. Faltam apenas os ajustes de cores para seguir a identidade visual.'
+            )
+            comentarios_criados += 2
 
         self.stdout.write(f'  ✓ {comentarios_criados} comentários criados')
 

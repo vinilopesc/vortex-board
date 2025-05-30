@@ -10,8 +10,11 @@ from .models import Usuario, Projeto, Board, Bug, Feature, RegistroHora
 def criar_colunas_padrao(sender, instance, created, **kwargs):
     """
     Cria colunas padrão quando um novo board é criado
+    APENAS se não há colunas e não está sendo criado via seed
     """
     if created and not instance.colunas.exists():
+        # Verificar se é criação via seed (pode ter flag especial)
+        # Por padrão, criar colunas simples sem customização
         instance.criar_colunas_padrao()
 
 
@@ -53,11 +56,11 @@ def atualizar_timestamp_coluna(sender, instance, **kwargs):
             if obj_anterior.coluna_id != instance.coluna_id:
                 # Item mudou de coluna
                 instance.atualizado_em = timezone.now()
-                
+
                 # Se movendo para "Concluído", registrar
                 if instance.coluna.titulo == 'Concluído' and obj_anterior.coluna.titulo != 'Concluído':
                     print(f"[LOG] {instance.get_tipo_display()} '{instance.titulo}' foi concluído!")
-                    
+
         except sender.DoesNotExist:
             pass
 

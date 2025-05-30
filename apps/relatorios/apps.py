@@ -17,4 +17,4 @@ class RelatoriosConfig(AppConfig):
         """
         import logging
         logger = logging.getLogger(__name__)
-        logger.info("📊 Relatórios App inicializada - ReportLab habilitado")
+        logger.info("Relatorios App inicializada - ReportLab habilitado")

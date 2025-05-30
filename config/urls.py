@@ -38,6 +38,6 @@ admin.site.site_header = "Vortex Board - Administration"
 admin.site.site_title = "Vortex Admin"
 admin.site.index_title = "Painel Administrativo"
 
-# Handler de erros customizados (opcional)
-handler404 = 'apps.core.views.handler404'
-handler500 = 'apps.core.views.handler500'
+# REMOVIDO: Handler de erros customizados que não existem
+# handler404 = 'apps.core.views.handler404'
+# handler500 = 'apps.core.views.handler500'

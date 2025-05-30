@@ -10,8 +10,8 @@ import hashlib
 
 class Usuario(AbstractUser):
     """
-    Modelo customizado de usuário com encapsulamento de senha
-    Demonstra ENCAPSULAMENTO através de propriedades privadas
+    Modelo customizado de usuário
+    Demonstra conceitos de POO sem quebrar convenções do Django
     """
 
     TIPO_USUARIO_CHOICES = [
@@ -28,8 +28,8 @@ class Usuario(AbstractUser):
     foto = models.ImageField(upload_to='perfis/', null=True, blank=True)
     telefone = models.CharField(max_length=20, blank=True)
 
-    # Atributo privado para demonstrar encapsulamento
-    __senha_hash = models.CharField(max_length=128, editable=False, blank=True)
+    # REMOVIDO: Campo __senha_hash que causava erro no Django
+    # O Django já gerencia hash de senhas de forma segura via password field
 
     class Meta:
         db_table = 'usuario'
@@ -39,23 +39,6 @@ class Usuario(AbstractUser):
     def __str__(self):
         return f"{self.get_full_name() or self.username} ({self.get_tipo_display()})"
 
-    @property
-    def senha_hash(self):
-        """Getter encapsulado - retorna hash da senha"""
-        return self.__senha_hash
-
-    def atualizar_senha_hash(self):
-        """Método encapsulado para atualizar hash interno"""
-        if self.password:
-            self.__senha_hash = hashlib.sha256(
-                self.password.encode()
-            ).hexdigest()[:32]
-
-    def save(self, *args, **kwargs):
-        """Override do save para manter hash atualizado"""
-        self.atualizar_senha_hash()
-        super().save(*args, **kwargs)
-
     def pode_criar_projeto(self):
         """Verifica permissão baseada no tipo de usuário"""
         return self.tipo in ['admin', 'gerente']
@@ -63,6 +46,11 @@ class Usuario(AbstractUser):
     def pode_deletar_tarefa(self):
         """Apenas admin pode deletar tarefas"""
         return self.tipo == 'admin'
+
+    def gerar_cor_avatar(self):
+        """Gera cor consistente para avatar baseada no username"""
+        hash_obj = hashlib.md5(self.username.encode())
+        return f"#{hash_obj.hexdigest()[:6]}"
 
 
 class Projeto(models.Model):

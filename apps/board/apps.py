@@ -21,7 +21,7 @@ class BoardConfig(AppConfig):
         except ImportError:
             pass
 
-        # Log de inicialização
+        # Log de inicialização (sem emojis para evitar UnicodeEncodeError no Windows)
         import logging
         logger = logging.getLogger(__name__)
-        logger.info("🔌 Board App inicializada - WebSockets habilitados")
+        logger.info("Board App inicializada - WebSockets habilitados")

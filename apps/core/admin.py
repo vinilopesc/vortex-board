@@ -140,6 +140,18 @@ class FeatureInline(ItemInline):
     verbose_name_plural = "Features"
 
 
+class ComentarioInline(admin.TabularInline):
+    """Inline para comentários - CORRIGIDO"""
+    model = Comentario  # ADICIONADO: model é obrigatório
+    extra = 0
+    fields = ['usuario', 'texto', 'criado_em']
+    readonly_fields = ['criado_em']
+
+    def has_add_permission(self, request, obj=None):
+        """Apenas leitura no admin"""
+        return False
+
+
 @admin.register(Coluna)
 class ColunaAdmin(admin.ModelAdmin):
     """Admin para colunas do Kanban"""
@@ -181,17 +193,6 @@ class ColunaAdmin(admin.ModelAdmin):
         )
 
     cor_preview.short_description = 'Cor'
-
-
-class ComentarioInline(admin.TabularInline):
-    """Inline para comentários"""
-    extra = 0
-    fields = ['usuario', 'texto', 'criado_em']
-    readonly_fields = ['criado_em']
-
-    def has_add_permission(self, request, obj=None):
-        """Apenas leitura no admin"""
-        return False
 
 
 @admin.register(Bug)

@@ -146,7 +146,7 @@ def calcular_metricas_produtividade(projeto: Projeto, periodo_dias: int = 30) ->
         },
         'distribuicao_prioridade': distribuicao_prioridade
     }
-
+# CONTINUAÇÃO do apps/relatorios/utils.py - PARTE 2
 
 def gerar_grafico_velocidade(projeto: Projeto, sprints: int = 5) -> Dict:
     """
@@ -249,12 +249,13 @@ def calcular_distribuicao_trabalho(projeto: Projeto) -> Dict:
             atualizado_em__gte=ultimo_mes
         )
 
-        # Horas trabalhadas (último mês)
+        # Horas trabalhadas (último mês) - CORRIGIDO
         horas_trabalhadas = RegistroHora.objects.filter(
             usuario=membro,
-            Q(bug__coluna__board__projeto=projeto) | Q(feature__coluna__board__projeto=projeto),
             inicio__gte=ultimo_mes,
             fim__isnull=False
+        ).filter(
+            Q(bug__coluna__board__projeto=projeto) | Q(feature__coluna__board__projeto=projeto)
         ).aggregate(total=Sum('duracao'))['total'] or 0
 
         # Calcular pontos
@@ -313,7 +314,7 @@ def calcular_distribuicao_trabalho(projeto: Projeto) -> Dict:
             if m['pontos']['ativos'] > total_pontos_ativos / len(membros_dados) * 1.5
         ] if membros_dados else []
     }
-
+# CONTINUAÇÃO do apps/relatorios/utils.py - PARTE 3 FINAL
 
 def gerar_relatorio_semanal_automatico(projeto: Projeto) -> Dict:
     """
@@ -347,19 +348,21 @@ def gerar_relatorio_semanal_automatico(projeto: Projeto) -> Dict:
         atualizado_em__range=[inicio_semana, fim_semana]
     )
 
-    # Horas trabalhadas
+    # Horas trabalhadas - CORRIGIDO
     horas_semana = RegistroHora.objects.filter(
-        Q(bug__coluna__board__projeto=projeto) | Q(feature__coluna__board__projeto=projeto),
         inicio__range=[inicio_semana, fim_semana],
         fim__isnull=False
+    ).filter(
+        Q(bug__coluna__board__projeto=projeto) | Q(feature__coluna__board__projeto=projeto)
     ).aggregate(total=Sum('duracao'))['total'] or 0
 
-    # Top contributors
+    # Top contributors - CORRIGIDO
     contribuidores = {}
     for registro in RegistroHora.objects.filter(
-            Q(bug__coluna__board__projeto=projeto) | Q(feature__coluna__board__projeto=projeto),
             inicio__range=[inicio_semana, fim_semana],
             fim__isnull=False
+    ).filter(
+        Q(bug__coluna__board__projeto=projeto) | Q(feature__coluna__board__projeto=projeto)
     ).select_related('usuario'):
         user_id = registro.usuario.id
         if user_id not in contribuidores:

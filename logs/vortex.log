@@ -1,3 +1,110 @@
 INFO 2025-05-30 11:33:22,520 autoreload 5540 6056 Watching for file changes with StatReloader
 INFO 2025-05-30 12:54:58,228 autoreload 7556 14644 Watching for file changes with StatReloader
 INFO 2025-05-30 13:00:45,153 autoreload 10452 6140 Watching for file changes with StatReloader
+INFO 2025-05-30 13:13:42,151 autoreload 11948 19116 Watching for file changes with StatReloader
+INFO 2025-05-30 13:14:37,879 autoreload 11948 19116 C:\Users\vinic\Desktop\git\vortex-board\apps\board\apps.py changed, reloading.
+INFO 2025-05-30 13:14:40,530 apps 2696 8804 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:14:40,558 autoreload 2696 8804 Watching for file changes with StatReloader
+INFO 2025-05-30 13:14:59,758 autoreload 2696 8804 C:\Users\vinic\Desktop\git\vortex-board\apps\relatorios\apps.py changed, reloading.
+INFO 2025-05-30 13:15:02,426 apps 15700 6220 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:15:02,427 apps 15700 6220 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:15:02,450 autoreload 15700 6220 Watching for file changes with StatReloader
+INFO 2025-05-30 13:15:44,660 autoreload 15700 6220 C:\Users\vinic\Desktop\git\vortex-board\apps\relatorios\utils.py changed, reloading.
+INFO 2025-05-30 13:15:47,271 apps 6256 9888 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:15:47,271 apps 6256 9888 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:15:47,293 autoreload 6256 9888 Watching for file changes with StatReloader
+INFO 2025-05-30 13:15:55,085 autoreload 6256 9888 C:\Users\vinic\Desktop\git\vortex-board\apps\relatorios\utils.py changed, reloading.
+INFO 2025-05-30 13:15:57,714 apps 11688 7888 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:15:57,714 apps 11688 7888 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:15:57,738 autoreload 11688 7888 Watching for file changes with StatReloader
+INFO 2025-05-30 13:16:03,553 autoreload 11688 7888 C:\Users\vinic\Desktop\git\vortex-board\apps\relatorios\utils.py changed, reloading.
+INFO 2025-05-30 13:16:06,175 apps 12864 17044 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:16:06,176 apps 12864 17044 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:16:06,198 autoreload 12864 17044 Watching for file changes with StatReloader
+INFO 2025-05-30 13:16:20,443 apps 7748 17164 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:16:20,444 apps 7748 17164 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:16:22,968 apps 8848 9116 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:16:22,968 apps 8848 9116 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:16:22,991 autoreload 8848 9116 Watching for file changes with StatReloader
+INFO 2025-05-30 13:23:03,926 apps 18456 6500 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:23:03,927 apps 18456 6500 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:23:06,478 apps 17992 1164 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:23:06,479 apps 17992 1164 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:23:06,501 autoreload 17992 1164 Watching for file changes with StatReloader
+INFO 2025-05-30 13:27:12,178 apps 10392 15136 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:27:12,179 apps 10392 15136 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:27:22,901 apps 16588 2388 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:27:22,902 apps 16588 2388 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:27:40,561 apps 4004 10724 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:27:40,562 apps 4004 10724 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:34:41,549 apps 18072 9952 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:34:41,549 apps 18072 9952 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:36:56,659 apps 15796 16624 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:36:56,659 apps 15796 16624 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:41:06,021 apps 16212 8628 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:41:06,021 apps 16212 8628 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:42:43,619 apps 5768 17128 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:42:43,619 apps 5768 17128 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:46:14,308 apps 2868 7584 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:46:14,309 apps 2868 7584 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:46:17,266 apps 9536 14244 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:46:17,266 apps 9536 14244 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:46:20,358 apps 1964 11948 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:46:20,358 apps 1964 11948 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:48:05,898 apps 10140 3540 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:48:05,899 apps 10140 3540 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:50:10,054 apps 15076 12820 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:50:10,054 apps 15076 12820 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:50:41,543 apps 14768 15880 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:50:41,544 apps 14768 15880 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:53:31,078 apps 4984 10932 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:53:31,078 apps 4984 10932 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:53:44,534 apps 14432 16536 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:53:44,535 apps 14432 16536 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:57:15,895 apps 15216 1684 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:57:15,895 apps 15216 1684 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 13:57:32,424 apps 12228 10456 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 13:57:32,424 apps 12228 10456 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 14:00:09,118 apps 4612 8780 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 14:00:09,118 apps 4612 8780 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 14:00:11,697 apps 11228 13276 Board App inicializada - WebSockets habilitados
+INFO 2025-05-30 14:00:11,697 apps 11228 13276 Relatorios App inicializada - ReportLab habilitado
+INFO 2025-05-30 14:00:11,720 autoreload 11228 13276 Watching for file changes with StatReloader
+INFO 2025-05-30 14:00:28,455 basehttp 11228 8480 "GET / HTTP/1.1" 302 0
+INFO 2025-05-30 14:00:28,481 basehttp 11228 8480 "GET /painel/ HTTP/1.1" 302 0
+ERROR 2025-05-30 14:00:28,548 log 11228 8480 Internal Server Error: /login/
+Traceback (most recent call last):
+  File "C:\Users\vinic\Desktop\git\vortex-board\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\vinic\Desktop\git\vortex-board\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\vinic\Desktop\git\vortex-board\venv\Lib\site-packages\django\utils\decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\vinic\Desktop\git\vortex-board\venv\Lib\site-packages\django\views\decorators\http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\vinic\Desktop\git\vortex-board\apps\core\views.py", line 56, in login_view
+    return render(request, 'core/login.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\vinic\Desktop\git\vortex-board\venv\Lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\vinic\Desktop\git\vortex-board\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\vinic\Desktop\git\vortex-board\venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: core/login.html
+ERROR 2025-05-30 14:00:28,571 basehttp 11228 8480 "GET /login/?next=/painel/ HTTP/1.1" 500 116075
+INFO 2025-05-30 14:00:28,600 basehttp 11228 8480 "GET /static/debug_toolbar/css/print.css HTTP/1.1" 200 43
+INFO 2025-05-30 14:00:28,602 basehttp 11228 8480 "GET /static/debug_toolbar/css/toolbar.css HTTP/1.1" 200 12621
+INFO 2025-05-30 14:00:28,603 basehttp 11228 8480 "GET /static/debug_toolbar/js/toolbar.js HTTP/1.1" 200 13404
+INFO 2025-05-30 14:00:28,668 basehttp 11228 8480 "GET /static/debug_toolbar/js/utils.js HTTP/1.1" 200 4527
+WARNING 2025-05-30 14:00:28,721 log 11228 8480 Not Found: /favicon.ico
+WARNING 2025-05-30 14:00:28,721 basehttp 11228 8480 "GET /favicon.ico HTTP/1.1" 404 12641

@@ -52,6 +52,8 @@ else:
             'PORT': env('DB_PORT', default='5432'),
             'OPTIONS': {
                 'sslmode': 'prefer',  # Mais flexível que 'require'
+                # ADICIONADO: Forçar encoding UTF-8 para evitar UnicodeDecodeError
+                'client_encoding': 'UTF8',
             },
             'CONN_MAX_AGE': 60,  # Conexões persistentes
         }
