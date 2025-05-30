@@ -10,10 +10,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 # === APPS ADICIONAIS PARA DEV ===
-
-INSTALLED_APPS += [
-    'django_extensions',  # shell_plus, runserver_plus, etc
-]
+# django_extensions já está em base.py
 
 # Debug Toolbar apenas se disponível
 try:
@@ -38,14 +35,42 @@ except ImportError:
 
 # === BANCO DE DADOS ===
 
-# Usar SQLite para desenvolvimento local se preferir
-if env('USE_SQLITE', default=False):
+# PostgreSQL por padrão (mesmo do production)
+# Usar DATABASE_URL se fornecida, senão usar variáveis individuais
+if env('DATABASE_URL', default=None):
+    import dj_database_url
+
+    DATABASES['default'] = dj_database_url.parse(env('DATABASE_URL'), conn_max_age=600)
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env('DB_NAME', default='vortex_board'),
+            'USER': env('DB_USER', default='vortex_user'),
+            'PASSWORD': env('DB_PASSWORD', default='vortex123'),
+            'HOST': env('DB_HOST', default='localhost'),
+            'PORT': env('DB_PORT', default='5432'),
+            'OPTIONS': {
+                'sslmode': 'prefer',  # Mais flexível que 'require'
+            },
+            'CONN_MAX_AGE': 60,  # Conexões persistentes
+        }
+    }
+
+# Fallback para SQLite apenas se explicitamente solicitado
+if env('USE_SQLITE', cast=bool, default=False):
+    print("🔄 Usando SQLite para desenvolvimento")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+else:
+    print(f"🐘 Usando PostgreSQL: {DATABASES['default']['NAME']}@{DATABASES['default']['HOST']}")
+
+# Configuração específica para desenvolvimento
+DATABASES['default']['ATOMIC_REQUESTS'] = True  # Transações automáticas
 
 # === EMAIL ===
 
@@ -64,10 +89,39 @@ LOGGING['loggers']['django.db.backends'] = {
 
 # === CONFIGURAÇÕES DE DESENVOLVIMENTO ===
 
-# Desabilitar cache em desenvolvimento
+# Cache simples em desenvolvimento (sem Redis obrigatório)
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'vortex-dev-cache',
+    }
+}
+
+# Usar Redis se disponível
+if env('REDIS_URL', default=None):
+    try:
+        import redis
+
+        # Testar conexão Redis
+        r = redis.from_url(env('REDIS_URL'))
+        r.ping()
+
+        CACHES['default'] = {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': env('REDIS_URL'),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
+        }
+        print("🔴 Redis conectado com sucesso!")
+    except Exception as e:
+        print(f"⚠️  Redis não disponível: {e}")
+        print("📝 Usando cache em memória local")
+
+# Channels simplificado para desenvolvimento
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer'
     }
 }
 

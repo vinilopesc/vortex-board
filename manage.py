@@ -35,7 +35,9 @@ def main():
 
             # Executar migrações
             print("📊 Aplicando migrações...")
-            os.system('python manage.py migrate')
+            if os.system('python manage.py migrate') != 0:
+                print("❌ Erro nas migrações")
+                return
 
             # Coletar arquivos estáticos
             print("📁 Coletando arquivos estáticos...")
@@ -43,18 +45,53 @@ def main():
 
             # Criar superusuário se não existir
             print("👤 Verificando superusuário...")
-            os.system(
-                'python manage.py shell -c "from apps.core.models import Usuario; Usuario.objects.filter(is_superuser=True).exists() or Usuario.objects.create_superuser(\'admin\', \'admin@vortex.com.br\', \'admin123\')"')
+            exit_code = os.system(
+                'python manage.py shell -c "from apps.core.models import Usuario; Usuario.objects.filter(is_superuser=True).exists() or Usuario.objects.create_superuser(\'admin\', \'admin@vortex.com.br\', \'admin123\', tipo=\'admin\')"')
 
-            # Executar seed
-            print("🌱 Populando banco com dados demo...")
-            os.system('python manage.py seed')
+            if exit_code == 0:
+                # Executar seed apenas se não houver erro
+                print("🌱 Populando banco com dados demo...")
+                os.system('python manage.py seed')
 
-            print("✅ Setup concluído!")
-            print("🔑 Acesse com: admin/admin123")
+                print("✅ Setup concluído!")
+                print("🔑 Acesse com: admin/admin123")
+            else:
+                print("⚠️  Setup parcial concluído (sem dados demo)")
             return
 
-        # Comando de backup
+        # Comando de configuração do banco
+        elif command == 'setup-db':
+            print("🐘 Configurando PostgreSQL...")
+
+            # Comandos SQL para executar
+            commands = [
+                "CREATE USER vortex_user WITH PASSWORD 'vortex123';",
+                "CREATE DATABASE vortex_board OWNER vortex_user;",
+                "GRANT ALL PRIVILEGES ON DATABASE vortex_board TO vortex_user;",
+                "GRANT CREATE ON SCHEMA public TO vortex_user;",
+                "ALTER USER vortex_user CREATEDB;"
+            ]
+
+            for cmd in commands:
+                print(f"Executando: {cmd}")
+                exit_code = os.system(f'psql -U postgres -h localhost -c "{cmd}"')
+                if exit_code != 0:
+                    print(f"⚠️  Comando pode ter falhado (normal se já existir)")
+
+            # Testar conexão
+            print("🧪 Testando conexão...")
+            test_result = os.system('psql -U vortex_user -h localhost -d vortex_board -c "SELECT version();"')
+
+            if test_result == 0:
+                print("✅ PostgreSQL configurado com sucesso!")
+                print("📊 Execute agora: python manage.py setup")
+            else:
+                print("❌ Erro na configuração. Verifique:")
+                print("   1. PostgreSQL está instalado?")
+                print("   2. Serviço postgresql está rodando?")
+                print("   3. psql está no PATH?")
+                print("   4. Senha do postgres está correta?")
+            return
         elif command == 'backup':
             print("💾 Criando backup do banco...")
             from datetime import datetime

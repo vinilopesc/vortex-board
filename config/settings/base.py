@@ -13,8 +13,8 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
 )
 
-# Lê o arquivo .env se existir
-environ.Env.read_env(BASE_DIR / '.env')
+# Lê o arquivo env_prod.txt se existir
+environ.Env.read_env(BASE_DIR / 'env_prod.txt')
 
 # === CONFIGURAÇÕES BÁSICAS ===
 
@@ -110,7 +110,7 @@ DATABASES = {
 if env('DATABASE_URL', default=None):
     import dj_database_url
 
-    DATABASES['default'] = dj_database_url.parse(env('DATABASE_URL'))
+    DATABASES['default'] = dj_database_url.parse(env('DATABASE_URL'), conn_max_age=600)
 
 # === CACHE & REDIS ===
 
@@ -120,7 +120,9 @@ CACHES = {
         'LOCATION': env('REDIS_URL', default='redis://localhost:6379/0'),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        }
+        },
+        'TIMEOUT': 300,
+        'KEY_PREFIX': 'vortex_board',
     }
 }
 
