@@ -10,47 +10,112 @@ import hashlib
 
 class Usuario(AbstractUser):
     """
-    Modelo customizado de usuário
-    Demonstra conceitos de POO sem quebrar convenções do Django
+    Modelo de usuário customizado com suporte a multi-tenancy
+
+    Cada usuário pertence a uma empresa (tenant) e só pode acessar
+    dados da própria empresa.
     """
 
-    TIPO_USUARIO_CHOICES = [
+    TIPO_CHOICES = [
         ('admin', 'Administrador'),
         ('gerente', 'Gerente'),
         ('funcionario', 'Funcionário'),
     ]
 
-    tipo = models.CharField(
-        max_length=20,
-        choices=TIPO_USUARIO_CHOICES,
-        default='funcionario'
-    )
-    foto = models.ImageField(upload_to='perfis/', null=True, blank=True)
+    # === INFORMAÇÕES PESSOAIS ===
     telefone = models.CharField(max_length=20, blank=True)
+    foto = models.ImageField(upload_to='usuarios/', blank=True, null=True)
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='funcionario')
 
-    # REMOVIDO: Campo __senha_hash que causava erro no Django
-    # O Django já gerencia hash de senhas de forma segura via password field
+    # === MULTI-TENANCY: CAMPO FUNDAMENTAL ===
+    empresa = models.CharField(
+        max_length=200,
+        help_text="Nome da empresa à qual este usuário pertence",
+        db_index=True  # Index para performance em consultas
+    )
+
+    # === METADADOS ===
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+    ativo = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'usuario'
-        verbose_name = 'Usuário'
-        verbose_name_plural = 'Usuários'
+        indexes = [
+            models.Index(fields=['empresa']),  # Performance para filtros por empresa
+            models.Index(fields=['empresa', 'tipo']),  # Performance para admin queries
+        ]
+
+    def save(self, *args, **kwargs):
+        """
+        Override do save para redimensionar foto automaticamente
+        """
+        super().save(*args, **kwargs)
+
+        if self.foto:
+            try:
+                img = Image.open(self.foto.path)
+                if img.height > 300 or img.width > 300:
+                    output_size = (300, 300)
+                    img.thumbnail(output_size)
+                    img.save(self.foto.path)
+            except Exception:
+                pass  # Falhar silenciosamente se não conseguir processar imagem
+
+    def get_colegas_empresa(self):
+        """
+        Retorna outros usuários da mesma empresa
+
+        Método encapsulado que garante isolamento por empresa
+        """
+        return Usuario.objects.filter(
+            empresa=self.empresa,
+            is_active=True
+        ).exclude(id=self.id)
+
+    def pode_acessar_projeto(self, projeto):
+        """
+        Verifica se usuário pode acessar um projeto específico
+
+        Regras de negócio encapsuladas:
+        1. Deve ser da mesma empresa
+        2. Deve ser membro do projeto OU admin da empresa
+        """
+        # Verificar se é da mesma empresa (isolamento nível 1)
+        if projeto.criado_por.empresa != self.empresa:
+            return False
+
+        # Admins da empresa podem acessar todos os projetos da empresa
+        if self.tipo == 'admin':
+            return True
+
+        # Outros usuários só podem acessar projetos onde são membros
+        return projeto.membros.filter(id=self.id).exists()
+
+    def get_projetos_acessiveis(self):
+        """
+        Retorna projetos que o usuário pode acessar
+
+        Aplica as regras de isolamento automaticamente
+        """
+        if self.tipo == 'admin':
+            # Admin vê todos os projetos da própria empresa
+            return Projeto.objects.filter(
+                criado_por__empresa=self.empresa,
+                ativo=True
+            )
+        else:
+            # Outros usuários veem apenas projetos onde participam
+            return Projeto.objects.filter(
+                membros=self,
+                ativo=True
+            ).distinct()
 
     def __str__(self):
-        return f"{self.get_full_name() or self.username} ({self.get_tipo_display()})"
-
-    def pode_criar_projeto(self):
-        """Verifica permissão baseada no tipo de usuário"""
-        return self.tipo in ['admin', 'gerente']
-
-    def pode_deletar_tarefa(self):
-        """Apenas admin pode deletar tarefas"""
-        return self.tipo == 'admin'
-
-    def gerar_cor_avatar(self):
-        """Gera cor consistente para avatar baseada no username"""
-        hash_obj = hashlib.md5(self.username.encode())
-        return f"#{hash_obj.hexdigest()[:6]}"
+        nome_completo = self.get_full_name()
+        if nome_completo:
+            return f"{nome_completo} ({self.empresa})"
+        return f"{self.username} ({self.empresa})"
 
 
 class Projeto(models.Model):

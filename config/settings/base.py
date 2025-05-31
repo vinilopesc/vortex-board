@@ -167,6 +167,29 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# === CONFIGURAÇÕES DE EMAIL ===
+
+# Email backend - usar console em desenvolvimento, SMTP em produção
+EMAIL_BACKEND = env(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend'
+)
+
+# Configurações SMTP para produção
+if EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend':
+    EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+    EMAIL_PORT = env('EMAIL_PORT', cast=int, default=587)
+    EMAIL_USE_TLS = env('EMAIL_USE_TLS', cast=bool, default=True)
+    EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+    EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+
+# Configurações de remetente
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@vortex.com.br')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Timeout para envio de emails
+EMAIL_TIMEOUT = 30
+
 # === LOGGING ===
 
 LOGGING = {
@@ -194,6 +217,11 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        },
     },
     'root': {
         'handlers': ['console', 'file'],
@@ -208,6 +236,11 @@ LOGGING = {
         'apps': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['file', 'mail_admins'],
+            'level': 'WARNING',
             'propagate': False,
         },
     },
@@ -225,6 +258,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,  # Mínimo 8 caracteres
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -235,20 +271,14 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Configurações de sessão
-SESSION_COOKIE_AGE = 86400  # 24 horas
+SESSION_COOKIE_AGE = 86400  # 24 horas por padrão
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-
-# === CONFIGURAÇÕES CUSTOMIZADAS ===
 
 # URLs de redirecionamento
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/painel/'
 LOGOUT_REDIRECT_URL = '/login/'
-
-# Configurações de email (placeholder)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='vortex@vortex.com.br')
 
 # Configurações de upload
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
@@ -272,3 +302,17 @@ VORTEX_WS_HEARTBEAT_INTERVAL = 30  # segundos
 # Configurações de cache para sessões
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
+
+# === CONFIGURAÇÕES DE AUTENTICAÇÃO EMPRESARIAL ===
+
+# Tempo de expiração dos tokens de recuperação de senha (em horas)
+PASSWORD_RESET_TIMEOUT_HOURS = 2
+
+# Máximo de tentativas de login antes de bloquear conta
+MAX_LOGIN_ATTEMPTS = 5
+
+# Duração do bloqueio em minutos
+ACCOUNT_LOCKOUT_DURATION_MINUTES = 15
+
+# Configuração adicional de sessão para "lembrar-me"
+REMEMBER_ME_DURATION_DAYS = 30

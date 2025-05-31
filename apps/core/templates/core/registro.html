@@ -1,0 +1,234 @@
+<!-- apps/core/templates/core/registro.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-lg w-full space-y-8">
+        <!-- Header -->
+        <div class="text-center">
+            <div class="mx-auto h-16 w-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
+                <span class="text-white font-bold text-2xl">V</span>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900">
+                Registre sua Empresa
+            </h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Crie sua conta e comece a gerenciar projetos
+            </p>
+        </div>
+
+        <!-- Formulário de registro -->
+        <form class="mt-8 space-y-6" method="post">
+            {% csrf_token %}
+
+            <!-- Mensagens -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="rounded-md p-4 {% if message.tags == 'error' %}bg-red-50 border border-red-200{% elif message.tags == 'success' %}bg-green-50 border border-green-200{% else %}bg-blue-50 border border-blue-200{% endif %}">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            {% if message.tags == 'error' %}
+                                <span class="text-red-400">❌</span>
+                            {% elif message.tags == 'success' %}
+                                <span class="text-green-400">✅</span>
+                            {% else %}
+                                <span class="text-blue-400">ℹ️</span>
+                            {% endif %}
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm {% if message.tags == 'error' %}text-red-800{% elif message.tags == 'success' %}text-green-800{% else %}text-blue-800{% endif %}">
+                                {{ message }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Mostrar erros do formulário -->
+            {% if form.non_field_errors %}
+                <div class="rounded-md p-4 bg-red-50 border border-red-200">
+                    <div class="text-sm text-red-800">
+                        {{ form.non_field_errors }}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="space-y-4">
+                <!-- Informações da empresa -->
+                <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <h3 class="text-sm font-semibold text-blue-900 mb-3">🏢 Informações da Empresa</h3>
+
+                    <div>
+                        <label for="{{ form.nome_empresa.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ form.nome_empresa.label }} *
+                        </label>
+                        {{ form.nome_empresa }}
+                        {% if form.nome_empresa.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.nome_empresa.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Dados do usuário administrador -->
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-3">👤 Dados do Administrador</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ form.first_name.label }} *
+                            </label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ form.last_name.label }}
+                            </label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ form.email.label }} *
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="{{ form.telefone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ form.telefone.label }}
+                        </label>
+                        {{ form.telefone }}
+                        {% if form.telefone.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.telefone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Credenciais de acesso -->
+                <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                    <h3 class="text-sm font-semibold text-green-900 mb-3">🔐 Credenciais de Acesso</h3>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ form.username.label }} *
+                            </label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.username.errors.0 }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-xs text-gray-500">Será usado para fazer login</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    {{ form.password.label }} *
+                                </label>
+                                {{ form.password }}
+                                {% if form.password.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.password.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <label for="{{ form.confirmar_password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    {{ form.confirmar_password.label }} *
+                                </label>
+                                {{ form.confirmar_password }}
+                                {% if form.confirmar_password.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.confirmar_password.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Termos de uso -->
+                <div class="flex items-center">
+                    {{ form.aceito_termos }}
+                    <label for="{{ form.aceito_termos.id_for_label }}" class="ml-2 block text-sm text-gray-900">
+                        {{ form.aceito_termos.label }}
+                    </label>
+                    {% if form.aceito_termos.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.aceito_termos.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Submit button -->
+            <div>
+                <button type="submit" id="btn-registrar"
+                        class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        🚀
+                    </span>
+                    Criar Conta
+                </button>
+            </div>
+        </form>
+
+        <!-- Link para login -->
+        <div class="text-center">
+            <p class="text-sm text-gray-600">
+                Já tem uma conta?
+                <a href="{% url 'core:login' %}" class="font-medium text-blue-600 hover:text-blue-500">
+                    Faça login aqui
+                </a>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center">
+            <p class="text-xs text-gray-500">
+                © 2024 Vórtex Startup. Todos os direitos reservados.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Loading no submit
+document.getElementById('btn-registrar').addEventListener('click', function() {
+    setTimeout(() => {
+        this.disabled = true;
+        this.innerHTML = '<span class="absolute left-0 inset-y-0 flex items-center pl-3">⏳</span>Criando conta...';
+    }, 100);
+});
+
+// Validação de senha em tempo real
+document.addEventListener('DOMContentLoaded', function() {
+    const senhaField = document.querySelector('input[name="password"]');
+    const confirmarSenhaField = document.querySelector('input[name="confirmar_password"]');
+
+    function validarSenhas() {
+        if (senhaField.value && confirmarSenhaField.value) {
+            if (senhaField.value !== confirmarSenhaField.value) {
+                confirmarSenhaField.setCustomValidity('As senhas não coincidem');
+            } else {
+                confirmarSenhaField.setCustomValidity('');
+            }
+        }
+    }
+
+    senhaField.addEventListener('input', validarSenhas);
+    confirmarSenhaField.addEventListener('input', validarSenhas);
+});
+</script>
+{% endblock %}

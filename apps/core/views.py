@@ -8,63 +8,202 @@ from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
+from django.conf import settings
 from django.db.models import Count, Q, Sum, Avg
 from django.core.paginator import Paginator
 
 from .models import Usuario, Projeto, Board, Bug, Feature, RegistroHora
 from .permissions import VortexPermissions
+from .forms import (
+    LoginForm, RegistroEmpresaForm, RecuperarSenhaForm,
+    RedefinirSenhaForm
+)
+from .auth_service import auth_service  # Importando nosso serviço encapsulado
 
 
 def login_view(request):
     """
-    View de login do sistema
+    View de login usando serviço encapsulado
+
+    O encapsulamento aqui separa a lógica HTTP (view) da lógica de autenticação (service)
     """
     if request.user.is_authenticated:
         return redirect('core:painel')
 
+    form = LoginForm()
+
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        form = LoginForm(request.POST)
 
-        user = authenticate(request, username=username, password=password)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            lembrar_me = form.cleaned_data['lembrar_me']
 
-        if user is not None:
-            login(request, user)
-            messages.success(request, f'Bem-vindo, {user.get_full_name() or user.username}!')
-            return redirect('core:painel')
-        else:
-            messages.error(request, 'Credenciais inválidas. Tente novamente.')
+            # Usar serviço encapsulado - toda lógica complexa está isolada
+            sucesso, mensagem = auth_service.fazer_login(
+                request, username, password, lembrar_me
+            )
 
-    return render(request, 'core/login.html', {
-        'title': 'Login - Vortex Board'
-    })
+            if sucesso:
+                messages.success(request, mensagem)
+                # Redirecionar para próxima página ou painel
+                next_url = request.GET.get('next', 'core:painel')
+                return redirect(next_url)
+            else:
+                messages.error(request, mensagem)
+
+    context = {
+        'title': 'Login - Vortex Board',
+        'form': form,
+        'show_registro_link': True  # Mostrar link para registro
+    }
+
+    return render(request, 'core/login.html', context)
+
+
+def registro_view(request):
+    """
+    View de registro de nova empresa
+
+    Aplica encapsulamento delegando toda validação e criação para o serviço
+    """
+    # Se já estiver logado, redirecionar
+    if request.user.is_authenticated:
+        return redirect('core:painel')
+
+    form = RegistroEmpresaForm()
+
+    if request.method == 'POST':
+        form = RegistroEmpresaForm(request.POST)
+
+        if form.is_valid():
+            # Preparar dados para o serviço encapsulado
+            dados_empresa = {
+                'username': form.cleaned_data['username'],
+                'email': form.cleaned_data['email'],
+                'password': form.cleaned_data['password'],
+                'first_name': form.cleaned_data['first_name'],
+                'last_name': form.cleaned_data['last_name'],
+                'telefone': form.cleaned_data['telefone'],
+                'nome_empresa': form.cleaned_data['nome_empresa']
+            }
+
+            # Usar serviço encapsulado para criar usuário
+            sucesso, mensagem, usuario = auth_service.criar_usuario_empresa(dados_empresa)
+
+            if sucesso:
+                messages.success(request, mensagem)
+                messages.info(
+                    request,
+                    'Você pode fazer login agora e começar a criar seus projetos!'
+                )
+                return redirect('core:login')
+            else:
+                messages.error(request, mensagem)
+
+    context = {
+        'title': 'Registro de Empresa - Vortex Board',
+        'form': form
+    }
+
+    return render(request, 'core/registro.html', context)
 
 
 def logout_view(request):
     """
-    View de logout
+    View de logout usando serviço encapsulado
     """
-    logout(request)
-    messages.info(request, 'Você foi desconectado com sucesso.')
+    if auth_service.fazer_logout(request):
+        messages.info(request, 'Você foi desconectado com sucesso.')
+    else:
+        messages.warning(request, 'Erro ao fazer logout.')
+
     return redirect('core:login')
+
+
+def recuperar_senha_view(request):
+    """
+    View para solicitar recuperação de senha
+
+    O encapsulamento protege a lógica de geração de tokens e envio de email
+    """
+    form = RecuperarSenhaForm()
+
+    if request.method == 'POST':
+        form = RecuperarSenhaForm(request.POST)
+
+        if form.is_valid():
+            email = form.cleaned_data['email']
+
+            # Usar serviço encapsulado para processar recuperação
+            sucesso, mensagem = auth_service.iniciar_recuperacao_senha(email)
+
+            if sucesso:
+                messages.success(request, mensagem)
+                messages.info(
+                    request,
+                    'Verifique sua caixa de entrada e spam. O link expira em 2 horas.'
+                )
+            else:
+                messages.error(request, mensagem)
+
+    context = {
+        'title': 'Recuperar Senha - Vortex Board',
+        'form': form
+    }
+
+    return render(request, 'core/recuperar_senha.html', context)
+
+
+def redefinir_senha_view(request, token):
+    """
+    View para redefinir senha com token
+
+    O encapsulamento protege toda validação de token e criptografia
+    """
+    form = RedefinirSenhaForm()
+
+    if request.method == 'POST':
+        form = RedefinirSenhaForm(request.POST)
+
+        if form.is_valid():
+            nova_senha = form.cleaned_data['nova_senha']
+
+            # Usar serviço encapsulado para validar token e redefinir senha
+            sucesso, mensagem = auth_service.validar_token_recuperacao(token, nova_senha)
+
+            if sucesso:
+                messages.success(request, mensagem)
+                messages.info(request, 'Você pode fazer login com sua nova senha.')
+                return redirect('core:login')
+            else:
+                messages.error(request, mensagem)
+                return redirect('core:recuperar_senha')
+
+    context = {
+        'title': 'Redefinir Senha - Vortex Board',
+        'form': form,
+        'token': token
+    }
+
+    return render(request, 'core/redefinir_senha.html', context)
 
 
 @login_required
 def painel_principal(request):
     """
-    Painel principal do usuário
-    Dashboard com projetos, estatísticas e ações rápidas
-    """
-    # Projetos que o usuário tem acesso
-    if request.user.tipo == 'admin':
-        projetos = Projeto.objects.filter(ativo=True)
-    else:
-        projetos = Projeto.objects.filter(
-            membros=request.user,
-            ativo=True
-        ).distinct()
+    Painel principal com isolamento multitenant correto
 
-    # Calcular estatísticas de cada projeto
+    Agora cada usuario vê apenas projetos da própria empresa
+    e apenas aqueles em que participa
+    """
+
+    # === ISOLAMENTO MULTI-TENANT APLICADO ===
+    # Usar método encapsulado que aplica as regras automaticamente
+    projetos = request.user.get_projetos_acessiveis()
+
+    # Calcular estatísticas de cada projeto (mesmo código de antes)
     for projeto in projetos:
         # Total de tarefas
         bugs_projeto = Bug.objects.filter(coluna__board__projeto=projeto)
@@ -83,27 +222,23 @@ def painel_principal(request):
         else:
             projeto.progresso_percentual = 0
 
-    # Estatísticas gerais do usuário
+    # Estatísticas também isoladas por empresa
     stats = calcular_estatisticas_usuario(request.user, projetos)
-
-    # Tarefas urgentes do usuário
     tarefas_urgentes = obter_tarefas_urgentes(request.user, projetos)
-
-    # Atividades recentes
     atividades_recentes = obter_atividades_recentes(request.user, projetos)
 
-    # Notificações (placeholder)
-    notificacoes = []  # TODO: Implementar sistema de notificações
-    notificacoes_nao_lidas = 0
+    # Debug: Mostrar empresa do usuário em desenvolvimento
+    if settings.DEBUG:
+        messages.info(request, f'Visualizando dados da empresa: {request.user.empresa}')
 
     context = {
         'title': 'Painel Principal',
-        'projetos': projetos[:10],  # Limitar a 10 projetos na tela
+        'projetos': projetos[:10],  # Limitados automaticamente por empresa
         'stats': stats,
         'tarefas_urgentes': tarefas_urgentes,
         'atividades_recentes': atividades_recentes,
-        'notificacoes': notificacoes,
-        'notificacoes_nao_lidas': notificacoes_nao_lidas,
+        'notificacoes': [],
+        'notificacoes_nao_lidas': 0,
     }
 
     return render(request, 'core/painel.html', context)
@@ -113,7 +248,7 @@ def calcular_estatisticas_usuario(usuario, projetos):
     """
     Calcula estatísticas do usuário para o dashboard
     """
-    # Semana atual
+    # Semana atual - CORRIGIDO: 'days' em vez de 'dias'
     inicio_semana = timezone.now() - timedelta(days=7)
 
     # Minhas tarefas (bugs + features)
@@ -198,6 +333,7 @@ def obter_tarefas_urgentes(usuario, projetos):
     Retorna tarefas urgentes do usuário
     """
     hoje = timezone.now().date()
+    # CORRIGIDO: 'days' em vez de 'dias'
     uma_semana = hoje + timedelta(days=7)
 
     # Bugs urgentes (críticos ou com prazo próximo)
@@ -243,6 +379,7 @@ def obter_tarefas_urgentes(usuario, projetos):
         })
 
     # Ordenar por prioridade e prazo
+    # CORRIGIDO: 'days' em vez de 'dias'
     tarefas_urgentes.sort(key=lambda x: (
         x['prazo'] if x['prazo'] else timezone.now().date() + timedelta(days=999),
         {'critica': 0, 'alta': 1, 'media': 2, 'baixa': 3}.get(x['prioridade'], 4)
@@ -256,6 +393,7 @@ def obter_atividades_recentes(usuario, projetos):
     Retorna atividades recentes relacionadas aos projetos do usuário
     """
     limite_dias = 7
+    # CORRIGIDO: 'days' em vez de 'dias' - ESTA ERA A LINHA DO ERRO!
     data_limite = timezone.now() - timedelta(days=limite_dias)
 
     atividades = []
@@ -321,7 +459,7 @@ def obter_atividades_recentes(usuario, projetos):
 @login_required
 def perfil_usuario(request):
     """
-    Página de perfil do usuário
+    Página de perfil do usuário - mantém lógica existente
     """
     if request.method == 'POST':
         # Atualizar perfil
@@ -387,52 +525,85 @@ def health_check(request):
 
 
 @login_required
-@require_http_methods(['GET', 'POST'])
-def criar_projeto(request):
+def criar_projeto_modal(request):
     """
-    Criar novo projeto (apenas gerentes e admins)
+    Modal para criar projeto com usuários isolados por empresa
+    """
+    if not VortexPermissions.is_gerente_ou_admin(request.user):
+        return JsonResponse({'error': 'Sem permissão'}, status=403)
+
+    # === ISOLAMENTO: Buscar apenas usuários da mesma empresa ===
+    usuarios = Usuario.objects.filter(
+        is_active=True,
+        empresa=request.user.empresa  # ← FILTRO FUNDAMENTAL!
+    ).order_by('first_name', 'username')
+
+    context = {
+        'usuarios': usuarios
+    }
+
+    return render(request, 'core/criar_projeto_modal.html', context)
+
+
+@login_required
+@require_http_methods(['POST'])
+def salvar_projeto(request):
+    """
+    Salva novo projeto via AJAX
     """
     if not VortexPermissions.is_gerente_ou_admin(request.user):
         messages.error(request, 'Sem permissão para criar projetos.')
         return redirect('core:painel')
 
-    if request.method == 'POST':
-        nome = request.POST.get('nome', '').strip()
-        cliente = request.POST.get('cliente', '').strip()
-        descricao = request.POST.get('descricao', '').strip()
+    nome = request.POST.get('nome', '').strip()
+    cliente = request.POST.get('cliente', '').strip()
+    descricao = request.POST.get('descricao', '').strip()
 
-        if not nome or not cliente:
-            messages.error(request, 'Nome e cliente são obrigatórios.')
+    if not nome or not cliente:
+        messages.error(request, 'Nome e cliente são obrigatórios.')
+        return redirect('core:painel')
+
+    try:
+        # Verificar se já existe projeto com mesmo nome
+        if Projeto.objects.filter(nome=nome).exists():
+            messages.error(request, 'Já existe um projeto com este nome.')
             return redirect('core:painel')
 
-        try:
-            # Criar projeto
-            projeto = Projeto.objects.create(
-                nome=nome,
-                cliente=cliente,
-                descricao=descricao,
-                criado_por=request.user
+        # Criar projeto
+        projeto = Projeto.objects.create(
+            nome=nome,
+            cliente=cliente,
+            descricao=descricao,
+            criado_por=request.user
+        )
+
+        # Adicionar criador como membro
+        projeto.membros.add(request.user)
+
+        # Criar board padrão automaticamente (via signal)
+        board = projeto.boards.first()
+        if not board:
+            # Criar manualmente se signal não funcionou
+            board = Board.objects.create(
+                titulo=f'{nome} - Sprint 1',
+                projeto=projeto,
+                descricao='Board principal do projeto'
             )
 
-            # Adicionar criador como membro
-            projeto.membros.add(request.user)
+        messages.success(request, f'Projeto "{nome}" criado com sucesso!')
 
-            messages.success(request, f'Projeto "{nome}" criado com sucesso!')
+        # Redirecionar para o board
+        if board:
+            return redirect('board:kanban', board_id=board.id)
+        else:
+            return redirect('core:painel')
 
-            # Redirecionar para o board criado automaticamente
-            board = projeto.boards.first()
-            if board:
-                return redirect('board:kanban', board_id=board.id)
-            else:
-                return redirect('core:painel')
-
-        except Exception as e:
-            messages.error(request, f'Erro ao criar projeto: {str(e)}')
-
-    return redirect('core:painel')
+    except Exception as e:
+        messages.error(request, f'Erro ao criar projeto: {str(e)}')
+        return redirect('core:painel')
 
 
-# API endpoints para AJAX
+# API endpoints para AJAX - mantendo existentes
 @login_required
 def api_estatisticas_painel(request):
     """
@@ -471,3 +642,60 @@ def api_tarefas_urgentes(request):
         'tarefas': tarefas,
         'count': len(tarefas)
     })
+
+
+@login_required
+def salvar_projeto(request):
+    """
+    Salva novo projeto com isolamento multi-tenant
+
+    Projetos criados automaticamente ficam isolados na empresa do usuário
+    """
+    if not VortexPermissions.is_gerente_ou_admin(request.user):
+        messages.error(request, 'Sem permissão para criar projetos.')
+        return redirect('core:painel')
+
+    nome = request.POST.get('nome', '').strip()
+    cliente = request.POST.get('cliente', '').strip()
+    descricao = request.POST.get('descricao', '').strip()
+
+    if not nome or not cliente:
+        messages.error(request, 'Nome e cliente são obrigatórios.')
+        return redirect('core:painel')
+
+    try:
+        # === ISOLAMENTO: Verificar apenas na própria empresa ===
+        projetos_empresa = Projeto.objects.filter(
+            criado_por__empresa=request.user.empresa
+        )
+
+        if projetos_empresa.filter(nome=nome, cliente=cliente).exists():
+            messages.error(request, 'Já existe um projeto com este nome para este cliente na sua empresa.')
+            return redirect('core:painel')
+
+        # Criar projeto (automaticamente isolado por empresa via criado_por)
+        projeto = Projeto.objects.create(
+            nome=nome,
+            cliente=cliente,
+            descricao=descricao,
+            criado_por=request.user  # ← Isso automaticamente isola por empresa!
+        )
+
+        # Adicionar criador como membro
+        projeto.membros.add(request.user)
+
+        # Criar board padrão
+        board = Board.objects.create(
+            titulo=f'{nome} - Sprint 1',
+            projeto=projeto,
+            descricao='Board principal do projeto'
+        )
+
+        messages.success(request, f'Projeto "{nome}" criado com sucesso para {request.user.empresa}!')
+
+        # Redirecionar para o board
+        return redirect('board:kanban', board_id=board.id)
+
+    except Exception as e:
+        messages.error(request, f'Erro ao criar projeto: {str(e)}')
+        return redirect('core:painel')

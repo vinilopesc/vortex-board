@@ -324,7 +324,52 @@
 <script src="{% static 'js/painel.js' %}"></script>
 
 <script>
-// Garantir que as funções estão disponíveis globalmente
+// Substituir a função abrirModalNovoProjeto no bloco extra_js
+
+function abrirModalNovoProjeto() {
+    const modal = document.getElementById('modal-novo-projeto');
+    const content = document.getElementById('modal-novo-projeto-content');
+
+    if (!modal || !content) {
+        console.error('Modal elements not found');
+        return;
+    }
+
+    // Mostrar modal
+    modal.classList.remove('hidden');
+
+    // Mostrar loading
+    content.innerHTML = `
+        <div class="text-center py-8">
+            <div class="spinner mx-auto mb-4"></div>
+            <p class="text-gray-600">Carregando formulário...</p>
+        </div>
+    `;
+
+    // Carregar conteúdo via AJAX
+    fetch('{% url "core:criar_projeto_modal" %}')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text();
+        })
+        .then(html => {
+            content.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Erro ao carregar modal:', error);
+            content.innerHTML = `
+                <div class="text-center py-8">
+                    <p class="text-red-600 mb-4">❌ Erro ao carregar formulário</p>
+                    <button onclick="fecharModalNovoProjeto()"
+                            class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                        Fechar
+                    </button>
+                </div>
+            `;
+        });
+}
 window.fecharModalNovoProjeto = fecharModalNovoProjeto;
 window.fecharModalNotificacoes = fecharModalNotificacoes;
 

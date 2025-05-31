@@ -1,4 +1,4 @@
-<!-- apps/core/templates/core/login.html -->
+<!-- apps/core/templates/core/recuperar_senha.html -->
 {% extends 'base.html' %}
 {% load static %}
 
@@ -13,14 +13,14 @@
                 <span class="text-white font-bold text-2xl">V</span>
             </div>
             <h2 class="text-3xl font-bold text-gray-900">
-                Vortex Board
+                Recuperar Senha
             </h2>
             <p class="mt-2 text-sm text-gray-600">
-                Entre na sua conta para continuar
+                Digite seu email para receber instruções de recuperação
             </p>
         </div>
 
-        <!-- Formulário de login -->
+        <!-- Formulário de recuperação -->
         <form class="mt-8 space-y-6" method="post">
             {% csrf_token %}
 
@@ -48,63 +48,62 @@
                 {% endfor %}
             {% endif %}
 
+            <!-- Mostrar erros do formulário -->
+            {% if form.email.errors %}
+                <div class="rounded-md p-4 bg-red-50 border border-red-200">
+                    <div class="text-sm text-red-800">
+                        {{ form.email.errors.0 }}
+                    </div>
+                </div>
+            {% endif %}
+
             <div class="space-y-4">
-                <!-- Username/Email -->
+                <!-- Email -->
                 <div>
-                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-                        {{ form.username.label }}
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.email.label }}
                     </label>
-                    {{ form.username }}
+                    {{ form.email }}
                 </div>
 
-                <!-- Password -->
-                <div>
-                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-                        {{ form.password.label }}
-                    </label>
-                    {{ form.password }}
-                </div>
-            </div>
-
-            <!-- Remember me e Forgot password -->
-            <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    {{ form.lembrar_me }}
-                    <label for="{{ form.lembrar_me.id_for_label }}" class="ml-2 block text-sm text-gray-900">
-                        {{ form.lembrar_me.label }}
-                    </label>
-                </div>
-
-                <div class="text-sm">
-                    <a href="{% url 'core:recuperar_senha' %}" class="font-medium text-blue-600 hover:text-blue-500">
-                        Esqueceu a senha?
-                    </a>
+                <!-- Informações de segurança -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <span class="text-blue-600 text-lg mr-2">🔒</span>
+                        <div class="text-sm text-blue-800">
+                            <strong>Segurança:</strong> Por motivos de segurança, você receberá um email apenas se este endereço estiver cadastrado no sistema. O link de recuperação expira em 2 horas.
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Submit button -->
             <div>
-                <button type="submit" id="btn-login"
+                <button type="submit" id="btn-recuperar"
                         class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
                     <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                        🔐
+                        📧
                     </span>
-                    Entrar
+                    Enviar Email de Recuperação
                 </button>
             </div>
         </form>
 
-        <!-- Link para registro -->
-        {% if show_registro_link %}
-        <div class="text-center">
+        <!-- Links de navegação -->
+        <div class="text-center space-y-2">
             <p class="text-sm text-gray-600">
-                Não tem uma conta?
+                Lembrou da senha?
+                <a href="{% url 'core:login' %}" class="font-medium text-blue-600 hover:text-blue-500">
+                    Voltar ao login
+                </a>
+            </p>
+            <p class="text-sm text-gray-600">
+                Não tem conta?
                 <a href="{% url 'core:registro' %}" class="font-medium text-blue-600 hover:text-blue-500">
-                    Registre sua empresa gratuitamente
+                    Registre sua empresa
                 </a>
             </p>
         </div>
-        {% endif %}
 
         <!-- Footer -->
         <div class="text-center">
@@ -117,18 +116,18 @@
 
 <script>
 // Loading no submit
-document.getElementById('btn-login').addEventListener('click', function() {
+document.getElementById('btn-recuperar').addEventListener('click', function() {
     setTimeout(() => {
         this.disabled = true;
-        this.innerHTML = '<span class="absolute left-0 inset-y-0 flex items-center pl-3">⏳</span>Entrando...';
+        this.innerHTML = '<span class="absolute left-0 inset-y-0 flex items-center pl-3">⏳</span>Enviando email...';
     }, 100);
 });
 
-// Auto-focus no campo username
+// Auto-focus no campo email
 document.addEventListener('DOMContentLoaded', function() {
-    const usernameField = document.querySelector('input[name="username"]');
-    if (usernameField) {
-        usernameField.focus();
+    const emailField = document.querySelector('input[name="email"]');
+    if (emailField) {
+        emailField.focus();
     }
 });
 </script>

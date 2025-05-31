@@ -9,7 +9,7 @@
     </div>
 
     <!-- Formulário -->
-    <form method="post" class="mt-6 space-y-6">
+    <form method="post" action="{% url 'core:salvar_projeto' %}" class="mt-6 space-y-6">
         {% csrf_token %}
 
         <!-- Nome do Projeto -->
@@ -58,7 +58,7 @@
                     class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                 Cancelar
             </button>
-            <button type="submit"
+            <button type="submit" id="btn-criar-projeto"
                     class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                 🚀 Criar Projeto
             </button>
@@ -67,7 +67,7 @@
 </div>
 
 <script>
-// Validação do formulário
+// Validação e loading no submit
 document.querySelector('form').addEventListener('submit', function(e) {
     const nome = document.getElementById('nome').value.trim();
     const cliente = document.getElementById('cliente').value.trim();
@@ -79,7 +79,7 @@ document.querySelector('form').addEventListener('submit', function(e) {
     }
 
     // Mostrar loading
-    const submitBtn = this.querySelector('button[type="submit"]');
+    const submitBtn = document.getElementById('btn-criar-projeto');
     submitBtn.disabled = true;
     submitBtn.innerHTML = '⏳ Criando...';
 });
